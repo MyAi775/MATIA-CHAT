@@ -8,22 +8,18 @@
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
 <style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
+*{box-sizing:border-box;margin:0;padding:0}
 
-body{
-    font-family:Arial,Helvetica,sans-serif;
-    background:#0b141a;
-    color:#e9edef;
-    height:100vh;
+html,body{
+    width:100%;
+    height:100%;
     overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#070d11;
+    color:#e9edef;
 }
 
-button,
-input{
+button,input{
     font:inherit;
 }
 
@@ -32,44 +28,44 @@ button{
 }
 
 .hidden{
-    display:none !important;
+    display:none!important;
 }
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 
 #loginScreen{
     position:fixed;
     inset:0;
     display:flex;
-    align-items:center;
     justify-content:center;
+    align-items:center;
     background:
-        radial-gradient(circle at top,#123326 0,#07110e 42%,#050809 100%);
+        radial-gradient(circle at top,#174536 0,#0a1713 38%,#05090b 100%);
 }
 
 .loginCard{
     width:min(430px,92vw);
     padding:36px;
-    border:1px solid #214b3b;
+    border:1px solid #29433a;
     border-radius:24px;
-    background:rgba(10,22,18,.94);
-    box-shadow:0 30px 100px rgba(0,0,0,.55);
+    background:#0f191e;
+    box-shadow:0 30px 100px rgba(0,0,0,.7);
     text-align:center;
 }
 
 .logo{
-    width:78px;
-    height:78px;
+    width:82px;
+    height:82px;
     margin:0 auto 18px;
-    border-radius:22px;
+    border-radius:24px;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:30px;
+    font-size:35px;
     font-weight:900;
-    color:white;
-    background:linear-gradient(135deg,#00a884,#087f5b);
-    box-shadow:0 15px 40px rgba(0,168,132,.24);
+    color:#fff;
+    background:linear-gradient(135deg,#00a884,#00745a);
+    box-shadow:0 15px 45px rgba(0,168,132,.25);
 }
 
 .loginCard h1{
@@ -78,19 +74,19 @@ button{
 }
 
 .loginCard p{
-    color:#9ba8ad;
-    margin-bottom:26px;
+    color:#8c9a9f;
+    margin-bottom:24px;
 }
 
 #username{
     width:100%;
-    padding:15px 17px;
-    border-radius:14px;
-    border:1px solid #29453b;
-    outline:none;
-    background:#111d19;
-    color:white;
+    padding:15px 16px;
     margin-bottom:12px;
+    border:1px solid #2e4047;
+    border-radius:13px;
+    outline:none;
+    background:#182228;
+    color:#fff;
 }
 
 #username:focus{
@@ -101,83 +97,86 @@ button{
     width:100%;
     padding:15px;
     border:0;
-    border-radius:14px;
-    color:white;
-    font-weight:800;
+    border-radius:13px;
     background:#00a884;
+    color:#fff;
+    font-weight:900;
+    transition:.15s;
 }
 
 #connectBtn:hover{
-    background:#02bd96;
+    background:#05bc97;
 }
 
-/* APP */
+/* ================= APP ================= */
 
 #app{
-    height:100vh;
+    width:100%;
+    height:100%;
     display:flex;
 }
 
-/* SIDEBAR */
+/* ================= SIDEBAR ================= */
 
 .sidebar{
     width:330px;
     min-width:330px;
-    background:#111b21;
-    border-right:1px solid #243036;
+    height:100%;
     display:flex;
     flex-direction:column;
+    background:#111b21;
+    border-right:1px solid #27333a;
 }
 
 .sideTop{
-    padding:16px;
+    padding:15px;
     background:#202c33;
 }
 
 .sideBrand{
     display:flex;
-    align-items:center;
     justify-content:space-between;
-    margin-bottom:14px;
+    align-items:center;
+    margin-bottom:13px;
 }
 
 .sideBrand strong{
-    font-size:22px;
+    font-size:21px;
 }
 
 .sideButtons{
     display:flex;
-    gap:7px;
+    gap:6px;
 }
 
 .iconBtn{
-    width:38px;
-    height:38px;
+    width:39px;
+    height:39px;
     border:0;
     border-radius:50%;
-    background:#18252b;
-    color:#dce6e8;
+    background:#17242a;
+    color:#fff;
 }
 
 .iconBtn:hover{
-    background:#26343b;
+    background:#293940;
 }
 
 .searchBox{
     width:100%;
-    background:#111b21;
-    border-radius:12px;
-    padding:10px 13px;
-    border:1px solid #24343a;
-    color:white;
+    padding:11px 13px;
+    border:1px solid #2a3b42;
+    border-radius:11px;
     outline:none;
+    background:#111b21;
+    color:#fff;
 }
 
 .sectionTitle{
-    padding:13px 17px 8px;
+    padding:13px 16px 8px;
     color:#7f8c91;
-    font-size:12px;
-    font-weight:800;
+    font-size:11px;
+    font-weight:900;
     text-transform:uppercase;
     letter-spacing:.08em;
 }
@@ -189,12 +188,12 @@ button{
 
 .groupItem,
 .userItem{
-    padding:12px 15px;
     display:flex;
     align-items:center;
     gap:11px;
-    cursor:pointer;
+    padding:11px 14px;
     border-bottom:1px solid rgba(255,255,255,.025);
+    cursor:pointer;
 }
 
 .groupItem:hover,
@@ -207,16 +206,16 @@ button{
 }
 
 .avatar{
-    width:43px;
-    height:43px;
+    width:44px;
+    height:44px;
+    min-width:44px;
     border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
     background:#00a884;
-    color:white;
+    color:#fff;
     font-weight:900;
-    flex:none;
 }
 
 .userMeta{
@@ -225,24 +224,24 @@ button{
 }
 
 .userName{
-    font-weight:700;
-    white-space:nowrap;
+    font-weight:800;
     overflow:hidden;
     text-overflow:ellipsis;
+    white-space:nowrap;
 }
 
 .userRole{
-    font-size:12px;
-    color:#86979d;
     margin-top:3px;
+    color:#89969b;
+    font-size:12px;
 }
 
 .roleOwner{
-    color:#ffcc66;
+    color:#ffd166!important;
 }
 
 .roleMod{
-    color:#5ecbff;
+    color:#5dccff!important;
 }
 
 .statusDot{
@@ -252,74 +251,90 @@ button{
     background:#2bd576;
 }
 
-/* CHAT */
+/* ================= CHAT ================= */
 
 .chat{
     flex:1;
     min-width:0;
+    height:100%;
     display:flex;
     flex-direction:column;
-    background:#0b141a;
+    background:#080d11;
 }
 
 .chatHeader{
     height:72px;
-    background:#202c33;
+    min-height:72px;
     display:flex;
     align-items:center;
-    padding:0 18px;
-    border-bottom:1px solid #263239;
+    padding:0 17px;
+    background:#202c33;
+    border-bottom:1px solid #27333a;
 }
 
 .headerAvatar{
     width:46px;
     height:46px;
-    border-radius:50%;
-    background:#00a884;
+    min-width:46px;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-weight:900;
     margin-right:12px;
+    border-radius:50%;
+    background:#00a884;
+    color:#fff;
+    font-weight:900;
 }
 
 .headerInfo{
     flex:1;
+    min-width:0;
 }
 
 .headerTitle{
     font-size:17px;
-    font-weight:800;
+    font-weight:900;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 .headerSub{
+    margin-top:4px;
     font-size:12px;
-    color:#91a0a5;
-    margin-top:3px;
+    color:#8c9a9f;
 }
 
 .headerActions{
     display:flex;
-    gap:8px;
+    gap:6px;
 }
+
+/* ================= MESSAGES ================= */
 
 .messages{
     flex:1;
-    overflow:auto;
-    padding:24px 7%;
+    overflow-y:auto;
+    padding:25px 7%;
     background:
-        radial-gradient(circle at 20% 20%,rgba(0,168,132,.04),transparent 28%),
-        radial-gradient(circle at 80% 80%,rgba(0,168,132,.035),transparent 30%),
-        #0b141a;
+        radial-gradient(circle at 15% 20%,rgba(0,168,132,.04),transparent 30%),
+        radial-gradient(circle at 85% 80%,rgba(0,168,132,.03),transparent 35%),
+        #080d11;
 }
 
 .empty{
+    width:100%;
     height:100%;
     display:flex;
     align-items:center;
     justify-content:center;
-    color:#78868c;
     text-align:center;
+    color:#7f8c91;
+}
+
+.empty h2{
+    margin-bottom:7px;
+    color:#d6dfe2;
 }
 
 .messageRow{
@@ -335,8 +350,7 @@ button{
     max-width:min(72%,650px);
     padding:8px 11px 7px;
     border-radius:8px;
-    position:relative;
-    box-shadow:0 1px 1px rgba(0,0,0,.22);
+    box-shadow:0 1px 2px rgba(0,0,0,.25);
 }
 
 .messageRow:not(.mine) .messageBubble{
@@ -350,50 +364,52 @@ button{
 }
 
 .messageUser{
-    font-size:12px;
-    font-weight:800;
     margin-bottom:4px;
-    color:#61d1b5;
+    font-size:12px;
+    font-weight:900;
+    color:#65d6bb;
 }
 
 .messageText{
-    line-height:1.4;
     white-space:pre-wrap;
     word-break:break-word;
+    line-height:1.42;
 }
 
 .messageTime{
-    font-size:10px;
-    color:#a6b5b8;
-    text-align:right;
     margin-top:5px;
+    text-align:right;
+    font-size:10px;
+    color:#9aa9ad;
 }
 
 .messageKind{
-    font-size:10px;
-    opacity:.75;
     margin-top:2px;
+    font-size:9px;
+    opacity:.65;
 }
 
-/* COMPOSER */
+/* ================= COMPOSER ================= */
 
 .composer{
     min-height:68px;
     display:flex;
     align-items:center;
-    gap:9px;
-    padding:12px 18px;
+    gap:8px;
+    padding:11px 16px;
     background:#202c33;
+    border-top:1px solid #27333a;
 }
 
 #messageInput{
     flex:1;
-    background:#2a3941;
+    min-width:0;
+    padding:13px 17px;
     border:0;
     outline:none;
-    color:white;
-    border-radius:22px;
-    padding:13px 17px;
+    border-radius:24px;
+    background:#2a3941;
+    color:#fff;
 }
 
 #sendBtn{
@@ -402,38 +418,38 @@ button{
     border:0;
     border-radius:50%;
     background:#00a884;
-    color:white;
-    font-size:19px;
+    color:#fff;
+    font-size:18px;
 }
 
-/* MODALS */
+/* ================= MODAL ================= */
 
 .modalBack{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.65);
+    z-index:1000;
     display:flex;
     align-items:center;
     justify-content:center;
-    z-index:100;
+    background:rgba(0,0,0,.68);
 }
 
 .modal{
-    width:min(520px,92vw);
-    max-height:85vh;
+    width:min(540px,92vw);
+    max-height:86vh;
     overflow:auto;
-    background:#111b21;
-    border:1px solid #29363c;
+    border:1px solid #293940;
     border-radius:18px;
-    box-shadow:0 25px 100px rgba(0,0,0,.5);
+    background:#111b21;
+    box-shadow:0 30px 100px rgba(0,0,0,.7);
 }
 
 .modalHead{
-    padding:17px 18px;
     display:flex;
-    justify-content:space-between;
     align-items:center;
-    border-bottom:1px solid #263239;
+    justify-content:space-between;
+    padding:16px 18px;
+    border-bottom:1px solid #29363d;
 }
 
 .modalBody{
@@ -444,11 +460,11 @@ button{
     width:100%;
     padding:13px;
     margin-bottom:10px;
+    border:1px solid #304149;
     border-radius:11px;
-    border:1px solid #304047;
-    background:#18252b;
-    color:white;
     outline:none;
+    background:#18252b;
+    color:#fff;
 }
 
 .modalPrimary{
@@ -457,23 +473,23 @@ button{
     border:0;
     border-radius:11px;
     background:#00a884;
-    color:white;
-    font-weight:800;
+    color:#fff;
+    font-weight:900;
 }
 
 .commandGrid{
     display:grid;
     grid-template-columns:repeat(2,1fr);
     gap:8px;
-    margin-top:10px;
+    margin-top:12px;
 }
 
 .commandBtn{
     padding:11px;
-    border:1px solid #314047;
+    border:1px solid #314149;
     border-radius:10px;
     background:#18252b;
-    color:#dfe8ea;
+    color:#e4ebed;
     text-align:left;
 }
 
@@ -481,16 +497,19 @@ button{
     background:#25353c;
 }
 
+/* ================= TOAST ================= */
+
 .toast{
     position:fixed;
-    right:20px;
-    bottom:85px;
+    right:18px;
+    bottom:82px;
+    z-index:2000;
+    max-width:340px;
     padding:12px 15px;
+    border:1px solid #33444a;
     border-radius:10px;
-    background:#1d2b31;
-    color:white;
-    border:1px solid #33444b;
-    z-index:200;
+    background:#1d2a30;
+    color:#fff;
     opacity:0;
     transform:translateY(10px);
     pointer-events:none;
@@ -502,37 +521,30 @@ button{
     transform:translateY(0);
 }
 
-/* EFFECTS */
-
-#effectLayer{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    z-index:300;
-}
+/* ================= EFFECTS ================= */
 
 .flash{
-    animation:flash .45s;
+    animation:flashEffect .45s;
 }
 
-@keyframes flash{
+@keyframes flashEffect{
     0%{filter:brightness(1)}
-    50%{filter:brightness(2)}
+    50%{filter:brightness(1.8)}
     100%{filter:brightness(1)}
 }
 
 .shake{
-    animation:shake .35s;
+    animation:shakeEffect .35s;
 }
 
-@keyframes shake{
+@keyframes shakeEffect{
     0%,100%{transform:translateX(0)}
-    25%{transform:translateX(-7px)}
-    50%{transform:translateX(7px)}
+    25%{transform:translateX(-6px)}
+    50%{transform:translateX(6px)}
     75%{transform:translateX(-4px)}
 }
 
-/* MOBILE */
+/* ================= MOBILE ================= */
 
 .mobileMenu{
     display:none;
@@ -542,8 +554,10 @@ button{
 
     .sidebar{
         position:fixed;
-        inset:0 auto 0 0;
-        z-index:50;
+        left:0;
+        top:0;
+        bottom:0;
+        z-index:900;
         transform:translateX(-100%);
         transition:.2s;
     }
@@ -554,15 +568,27 @@ button{
 
     .mobileMenu{
         display:block;
-        margin-right:8px;
+        margin-right:6px;
     }
 
     .messages{
-        padding:18px 12px;
+        padding:16px 10px;
     }
 
     .messageBubble{
         max-width:88%;
+    }
+
+    .headerActions .iconBtn{
+        display:none;
+    }
+
+    .loginCard{
+        padding:28px;
+    }
+
+    .loginCard h1{
+        font-size:29px;
     }
 }
 </style>
@@ -579,13 +605,13 @@ button{
 
         <h1>MATIA CHAT</h1>
 
-        <p>Enter your username and start chatting.</p>
+        <p>Choose your unique username.</p>
 
         <input
             id="username"
             maxlength="24"
-            placeholder="Your username"
             autocomplete="off"
+            placeholder="Username"
         >
 
         <button id="connectBtn">
@@ -600,7 +626,6 @@ button{
 <!-- APP -->
 <div id="app" class="hidden">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
 
         <div class="sideTop">
@@ -614,26 +639,22 @@ button{
                     <button
                         class="iconBtn"
                         onclick="openGroupModal()"
-                        title="Create new group"
-                    >
-                        ＋
-                    </button>
+                        title="Create group"
+                    >＋</button>
 
                     <button
                         class="iconBtn"
                         onclick="openCommands()"
                         title="Commands"
-                    >
-                        /
-                    </button>
+                    >/</button>
 
                 </div>
 
             </div>
 
             <input
-                class="searchBox"
                 id="searchInput"
+                class="searchBox"
                 placeholder="Search..."
                 oninput="searchEverything()"
             >
@@ -646,8 +667,8 @@ button{
         </div>
 
         <div
-            class="groupList"
             id="groupList"
+            class="groupList"
         ></div>
 
 
@@ -656,14 +677,13 @@ button{
         </div>
 
         <div
-            class="userList"
             id="userList"
+            class="userList"
         ></div>
 
     </aside>
 
 
-    <!-- CHAT -->
     <main class="chat">
 
         <header class="chatHeader">
@@ -671,31 +691,27 @@ button{
             <button
                 class="iconBtn mobileMenu"
                 onclick="toggleSidebar()"
-            >
-                ☰
-            </button>
+            >☰</button>
 
             <div
-                class="headerAvatar"
                 id="headerAvatar"
-            >
-                M
-            </div>
+                class="headerAvatar"
+            >M</div>
 
             <div class="headerInfo">
 
                 <div
-                    class="headerTitle"
                     id="groupTitle"
+                    class="headerTitle"
                 >
                     MATIA CHAT
                 </div>
 
                 <div
-                    class="headerSub"
                     id="groupSub"
+                    class="headerSub"
                 >
-                    Connecting...
+                    —
                 </div>
 
             </div>
@@ -706,17 +722,13 @@ button{
                     class="iconBtn"
                     onclick="openUsersModal()"
                     title="Users"
-                >
-                    👥
-                </button>
+                >👥</button>
 
                 <button
                     class="iconBtn"
                     onclick="openCommands()"
                     title="Commands"
-                >
-                    ⚡
-                </button>
+                >⚡</button>
 
             </div>
 
@@ -724,14 +736,14 @@ button{
 
 
         <section
-            class="messages"
             id="messages"
+            class="messages"
         >
 
             <div class="empty">
                 <div>
-                    <h2>Welcome to MATIA CHAT 👋</h2>
-                    <p>Send your first message.</p>
+                    <h2>Welcome 👋</h2>
+                    <p>Start the conversation.</p>
                 </div>
             </div>
 
@@ -744,22 +756,18 @@ button{
                 class="iconBtn"
                 onclick="openCommands()"
                 title="Commands"
-            >
-                ＋
-            </button>
+            >＋</button>
 
             <input
                 id="messageInput"
-                placeholder="Type a message..."
                 autocomplete="off"
+                placeholder="Type a message..."
             >
 
             <button
                 id="sendBtn"
                 onclick="sendMessage()"
-            >
-                ➤
-            </button>
+            >➤</button>
 
         </footer>
 
@@ -769,10 +777,9 @@ button{
 
 
 <!-- GROUP MODAL -->
-
 <div
-    class="modalBack hidden"
     id="groupModal"
+    class="modalBack hidden"
 >
 
     <div class="modal">
@@ -784,9 +791,7 @@ button{
             <button
                 class="iconBtn"
                 onclick="closeModal('groupModal')"
-            >
-                ×
-            </button>
+            >×</button>
 
         </div>
 
@@ -794,8 +799,8 @@ button{
 
             <input
                 id="groupName"
-                placeholder="Group name"
                 maxlength="40"
+                placeholder="Group name"
             >
 
             <button
@@ -813,10 +818,9 @@ button{
 
 
 <!-- USERS MODAL -->
-
 <div
-    class="modalBack hidden"
     id="usersModal"
+    class="modalBack hidden"
 >
 
     <div class="modal">
@@ -828,15 +832,13 @@ button{
             <button
                 class="iconBtn"
                 onclick="closeModal('usersModal')"
-            >
-                ×
-            </button>
+            >×</button>
 
         </div>
 
         <div
-            class="modalBody"
             id="usersModalBody"
+            class="modalBody"
         ></div>
 
     </div>
@@ -845,10 +847,9 @@ button{
 
 
 <!-- COMMAND MODAL -->
-
 <div
-    class="modalBack hidden"
     id="commandsModal"
+    class="modalBack hidden"
 >
 
     <div class="modal">
@@ -860,9 +861,7 @@ button{
             <button
                 class="iconBtn"
                 onclick="closeModal('commandsModal')"
-            >
-                ×
-            </button>
+            >×</button>
 
         </div>
 
@@ -883,69 +882,105 @@ button{
 
             <div class="commandGrid">
 
-                <button class="commandBtn" onclick="quickCommand('/help')">
-                    /help
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/help')"
+                >/help</button>
 
-                <button class="commandBtn" onclick="quickCommand('/time')">
-                    /time
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/time')"
+                >/time</button>
 
-                <button class="commandBtn" onclick="quickCommand('/flip')">
-                    /flip
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/flip')"
+                >/flip</button>
 
-                <button class="commandBtn" onclick="quickCommand('/dice')">
-                    /dice
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/dice')"
+                >/dice</button>
 
-                <button class="commandBtn" onclick="quickCommand('/roll')">
-                    /roll
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/roll')"
+                >/roll</button>
 
-                <button class="commandBtn" onclick="quickCommand('/8ball')">
-                    /8ball
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/8ball')"
+                >/8ball</button>
 
-                <button class="commandBtn" onclick="quickCommand('/rate')">
-                    /rate
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/rate')"
+                >/rate</button>
 
-                <button class="commandBtn" onclick="quickCommand('/online')">
-                    /online
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/online')"
+                >/online</button>
 
-                <button class="commandBtn" onclick="quickCommand('/clear')">
-                    /clear
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/clear')"
+                >/clear</button>
 
-                <button class="commandBtn" onclick="quickCommand('/announce hello everyone')">
-                    /announce
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/announce hello')"
+                >/announce</button>
 
-                <button class="commandBtn" onclick="quickCommand('/mute username')">
-                    /mute
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/mute username')"
+                >/mute</button>
 
-                <button class="commandBtn" onclick="quickCommand('/kick username')">
-                    /kick
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/unmute username')"
+                >/unmute</button>
 
-                <button class="commandBtn" onclick="quickCommand('/ban username')">
-                    /ban
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/kick username')"
+                >/kick</button>
 
-                <button class="commandBtn" onclick="quickCommand('/unban username')">
-                    /unban
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/ban username')"
+                >/ban</button>
 
-                <button class="commandBtn" onclick="quickCommand('/promote username')">
-                    /promote
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/unban username')"
+                >/unban</button>
 
-                <button class="commandBtn" onclick="quickCommand('/demote username')">
-                    /demote
-                </button>
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/promote username')"
+                >/promote</button>
+
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/demote username')"
+                >/demote</button>
+
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/lock')"
+                >/lock</button>
+
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/unlock')"
+                >/unlock</button>
+
+                <button
+                    class="commandBtn"
+                    onclick="quickCommand('/rename New Name')"
+                >/rename</button>
 
             </div>
 
@@ -956,40 +991,25 @@ button{
 </div>
 
 
-<div id="effectLayer"></div>
-
 <div
-    class="toast"
     id="toast"
+    class="toast"
 ></div>
 
 
 <script>
-
-/* =========================================================
-   STATE
-========================================================= */
-
 let USERNAME = "";
 let USER_ROLE = "user";
 let CURRENT_GROUP = "main";
 
-let groups = [
-    {
-        id:"main",
-        name:"MATIA CHAT"
-    }
-];
-
 let users = [];
+let groups = [];
 let messages = [];
 
 let socket = null;
 
 
-/* =========================================================
-   ELEMENTS
-========================================================= */
+/* ================= ELEMENTS ================= */
 
 const loginScreen =
     document.getElementById("loginScreen");
@@ -1019,9 +1039,7 @@ const groupSub =
     document.getElementById("groupSub");
 
 
-/* =========================================================
-   HELPERS
-========================================================= */
+/* ================= UTILS ================= */
 
 function escapeHtml(value){
 
@@ -1042,18 +1060,12 @@ function showToast(text){
     toast.textContent = text;
     toast.classList.add("show");
 
-    setTimeout(()=>{
-        toast.classList.remove("show");
-    },2200);
-}
+    clearTimeout(window.toastTimer);
 
-
-function closeModal(id){
-
-    document
-        .getElementById(id)
-        .classList.add("hidden");
-
+    window.toastTimer =
+        setTimeout(()=>{
+            toast.classList.remove("show");
+        },2200);
 }
 
 
@@ -1062,93 +1074,77 @@ function openModal(id){
     document
         .getElementById(id)
         .classList.remove("hidden");
-
 }
 
 
-/* =========================================================
-   LOGIN
-========================================================= */
+function closeModal(id){
+
+    document
+        .getElementById(id)
+        .classList.add("hidden");
+}
+
+
+/* ================= LOGIN ================= */
 
 document
     .getElementById("connectBtn")
-    .addEventListener("click",connectUser);
+    .addEventListener(
+        "click",
+        connectUser
+    );
 
 
-usernameInput.addEventListener("keydown",e=>{
+usernameInput.addEventListener(
+    "keydown",
+    event => {
 
-    if(e.key === "Enter"){
-        connectUser();
+        if(event.key === "Enter"){
+            connectUser();
+        }
+
     }
+);
 
-});
 
-
-function connectUser(){
+async function connectUser(){
 
     const name =
         usernameInput.value.trim();
 
     if(!name){
 
-        showToast("Enter a username.");
+        showToast(
+            "Enter a username."
+        );
 
         usernameInput.focus();
 
         return;
     }
 
-    USERNAME = name;
-
-    /*
-       OPEN THE CHAT IMMEDIATELY.
-    */
-
-    loginScreen.classList.add("hidden");
-    app.classList.remove("hidden");
-
-    document.getElementById("headerAvatar")
-        .textContent =
-        USERNAME.charAt(0).toUpperCase();
-
-    groupSub.textContent =
-        "Loading chat...";
-
-    localLogin();
-
-    connectSocket();
-
-    loadGroups();
-
-    loadMessages();
-
-    messageInput.focus();
-
-}
-
-
-/* =========================================================
-   HTTP LOGIN
-========================================================= */
-
-async function localLogin(){
 
     try{
 
         const response =
-            await fetch("/api/login",{
-                method:"POST",
-                headers:{
-                    "Content-Type":
-                    "application/json"
-                },
-                body:JSON.stringify({
-                    username:USERNAME
-                })
-            });
+            await fetch(
+                "/api/login",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:JSON.stringify({
+                        username:name
+                    })
+                }
+            );
+
 
         const data =
             await response.json();
+
 
         if(!response.ok){
 
@@ -1157,24 +1153,74 @@ async function localLogin(){
                 "Login failed."
             );
 
+            /*
+               IMPORTANT:
+               Chat does NOT open.
+            */
+
+            loginScreen.classList.remove(
+                "hidden"
+            );
+
+            app.classList.add(
+                "hidden"
+            );
+
+            usernameInput.focus();
+
             return;
         }
 
+
+        USERNAME =
+            data.username;
+
         USER_ROLE =
-            data.role ||
-            "user";
+            data.role || "user";
+
+
+        /*
+           Only now open the chat.
+        */
+
+        loginScreen.classList.add(
+            "hidden"
+        );
+
+        app.classList.remove(
+            "hidden"
+        );
+
+
+        document
+            .getElementById("headerAvatar")
+            .textContent =
+                USERNAME
+                    .charAt(0)
+                    .toUpperCase();
+
 
         groupSub.textContent =
             `${USER_ROLE.toUpperCase()} • online`;
 
-        loadUsers();
+
+        await loadGroups();
+
+        await loadUsers();
+
+        await loadMessages();
+
+        connectSocket();
+
+        messageInput.focus();
+
 
     }catch(error){
 
         console.error(error);
 
         showToast(
-            "Connected locally. Server login unavailable."
+            "Could not connect to server."
         );
 
     }
@@ -1182,141 +1228,198 @@ async function localLogin(){
 }
 
 
-/* =========================================================
-   SOCKET
-========================================================= */
+/* ================= SOCKET ================= */
 
 function connectSocket(){
 
+    if(typeof io === "undefined"){
+        return;
+    }
+
     try{
 
-        if(typeof io === "undefined"){
-
-            groupSub.textContent =
-                `${USER_ROLE.toUpperCase()} • HTTP mode`;
-
-            return;
-        }
-
-        socket =
-            io({
-                transports:["polling"],
-                reconnection:true,
-                reconnectionAttempts:20,
-                timeout:10000
-            });
-
-
-        socket.on("connect",()=>{
-
-            groupSub.textContent =
-                `${USER_ROLE.toUpperCase()} • online`;
-
-            socket.emit("login",{
-                username:USERNAME
-            });
-
+        socket = io({
+            transports:["polling"],
+            reconnection:true,
+            reconnectionAttempts:20,
+            timeout:10000
         });
 
 
-        socket.on("login_success",data=>{
+        socket.on(
+            "connect",
+            ()=>{
 
-            USER_ROLE =
-                data.role || "user";
-
-            groupSub.textContent =
-                `${USER_ROLE.toUpperCase()} • online`;
-
-        });
-
-
-        socket.on("login_error",data=>{
-
-            showToast(data.error || "Login error.");
-
-        });
-
-
-        socket.on("new_message",message=>{
-
-            if(!messages.some(
-                m => m.id === message.id
-            )){
-
-                messages.push(message);
-
-                renderMessages();
-
-            }
-
-        });
-
-
-        socket.on("users",data=>{
-
-            users = data || [];
-
-            renderUsers();
-
-        });
-
-
-        socket.on("groups",data=>{
-
-            groups = data || groups;
-
-            renderGroups();
-
-        });
-
-
-        socket.on("announcement",data=>{
-
-            showToast(
-                "📢 " +
-                (data.text || "Announcement")
-            );
-
-            document.body.classList.add("flash");
-
-            setTimeout(()=>{
-                document.body.classList.remove("flash");
-            },500);
-
-        });
-
-
-        socket.on("clear_group",data=>{
-
-            if(data.group === CURRENT_GROUP){
-
-                messages = messages.filter(
-                    m => m.group !== CURRENT_GROUP
+                socket.emit(
+                    "login",
+                    {
+                        username:USERNAME
+                    }
                 );
 
+                groupSub.textContent =
+                    `${USER_ROLE.toUpperCase()} • online`;
+
+            }
+        );
+
+
+        socket.on(
+            "login_error",
+            data => {
+
+                showToast(
+                    data.error ||
+                    "Login error."
+                );
+
+            }
+        );
+
+
+        socket.on(
+            "login_success",
+            data => {
+
+                USER_ROLE =
+                    data.role ||
+                    USER_ROLE;
+
+                groupSub.textContent =
+                    `${USER_ROLE.toUpperCase()} • online`;
+
+            }
+        );
+
+
+        socket.on(
+            "new_message",
+            message => {
+
+                const alreadyExists =
+                    messages.some(
+                        item =>
+                            String(item.id) ===
+                            String(message.id)
+                    );
+
+                if(!alreadyExists){
+
+                    messages.push(message);
+
+                    renderMessages();
+
+                }
+
+            }
+        );
+
+
+        socket.on(
+            "users",
+            data => {
+
+                users =
+                    Array.isArray(data)
+                        ? data
+                        : [];
+
+                renderUsers();
+
+            }
+        );
+
+
+        socket.on(
+            "groups",
+            data => {
+
+                groups =
+                    Array.isArray(data)
+                        ? data
+                        : groups;
+
+                renderGroups();
+
+            }
+        );
+
+
+        socket.on(
+            "clear_group",
+            data => {
+
+                messages =
+                    messages.filter(
+                        message =>
+                            message.group !==
+                            data.group
+                    );
+
                 renderMessages();
 
             }
+        );
 
-        });
 
+        socket.on(
+            "announcement",
+            data => {
 
-        socket.on("force_logout",data=>{
+                showToast(
+                    "📢 " +
+                    (data.text || "Announcement")
+                );
 
-            if(
-                data.username &&
-                data.username.toLowerCase() === USERNAME.toLowerCase()
-            ){
-
-                showToast("You have been removed.");
+                document.body.classList.add(
+                    "flash"
+                );
 
                 setTimeout(()=>{
-                    location.reload();
-                },1000);
+                    document.body.classList.remove(
+                        "flash"
+                    );
+                },500);
 
             }
+        );
 
-        });
+
+        socket.on(
+            "force_logout",
+            data => {
+
+                if(
+                    data.username &&
+                    data.username.toLowerCase() ===
+                    USERNAME.toLowerCase()
+                ){
+
+                    showToast(
+                        "You have been removed."
+                    );
+
+                    setTimeout(()=>{
+                        location.reload();
+                    },900);
+
+                }
+
+            }
+        );
+
+
+        socket.on(
+            "error_message",
+            data => {
+
+                showToast(
+                    data.error ||
+                    "Error."
+                );
+
+            }
+        );
 
 
     }catch(error){
@@ -1328,9 +1431,7 @@ function connectSocket(){
 }
 
 
-/* =========================================================
-   GROUPS
-========================================================= */
+/* ================= GROUPS ================= */
 
 async function loadGroups(){
 
@@ -1344,15 +1445,15 @@ async function loadGroups(){
             groups =
                 await response.json();
 
-            renderGroups();
-
         }
 
     }catch(error){
 
-        renderGroups();
+        console.error(error);
 
     }
+
+    renderGroups();
 
 }
 
@@ -1370,49 +1471,72 @@ function renderGroups(){
             "groupItem" +
             (
                 group.id === CURRENT_GROUP
-                ? " active"
-                : ""
+                    ? " active"
+                    : ""
             );
 
+
         item.innerHTML = `
+
             <div class="avatar">
                 ${escapeHtml(
-                    group.name.charAt(0).toUpperCase()
+                    group.name
+                        .charAt(0)
+                        .toUpperCase()
                 )}
             </div>
 
             <div class="userMeta">
+
                 <div class="userName">
-                    ${escapeHtml(group.name)}
+                    ${escapeHtml(
+                        group.name
+                    )}
                 </div>
 
                 <div class="userRole">
                     Group
                 </div>
+
             </div>
+
         `;
 
-        item.onclick = ()=>{
 
-            CURRENT_GROUP =
-                group.id;
+        item.onclick =
+            ()=>selectGroup(group.id);
 
-            groupTitle.textContent =
-                group.name;
-
-            renderGroups();
-
-            loadMessages();
-
-            document
-                .getElementById("sidebar")
-                .classList.remove("open");
-
-        };
 
         groupList.appendChild(item);
 
     });
+
+}
+
+
+function selectGroup(id){
+
+    const group =
+        groups.find(
+            item => item.id === id
+        );
+
+    if(!group){
+        return;
+    }
+
+    CURRENT_GROUP = id;
+
+    groupTitle.textContent =
+        group.name;
+
+    renderGroups();
+
+    loadMessages();
+
+    document
+        .getElementById("sidebar")
+        .classList.remove("open");
 
 }
 
@@ -1433,12 +1557,6 @@ function openGroupModal(){
 
     openModal("groupModal");
 
-    setTimeout(()=>{
-        document
-            .getElementById("groupName")
-            .focus();
-    },50);
-
 }
 
 
@@ -1452,28 +1570,36 @@ async function createGroup(){
 
     if(!name){
 
-        showToast("Enter a group name.");
+        showToast(
+            "Enter a group name."
+        );
 
         return;
     }
 
+
     try{
 
         const response =
-            await fetch("/api/group",{
-                method:"POST",
-                headers:{
-                    "Content-Type":
-                    "application/json"
-                },
-                body:JSON.stringify({
-                    username:USERNAME,
-                    name:name
-                })
-            });
+            await fetch(
+                "/api/group",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:JSON.stringify({
+                        username:USERNAME,
+                        name:name
+                    })
+                }
+            );
+
 
         const data =
             await response.json();
+
 
         if(!response.ok){
 
@@ -1485,10 +1611,14 @@ async function createGroup(){
             return;
         }
 
-        groups.push({
-            id:data.id,
-            name:data.name
-        });
+
+        input.value = "";
+
+        closeModal(
+            "groupModal"
+        );
+
+        await loadGroups();
 
         CURRENT_GROUP =
             data.id;
@@ -1498,15 +1628,12 @@ async function createGroup(){
 
         renderGroups();
 
-        closeModal("groupModal");
-
-        input.value = "";
-
         loadMessages();
 
         showToast(
             "✅ Group created!"
         );
+
 
     }catch(error){
 
@@ -1521,536 +1648,7 @@ async function createGroup(){
 }
 
 
-/* =========================================================
-   MESSAGES
-========================================================= */
-
-async function loadMessages(){
-
-    try{
-
-        const response =
-            await fetch(
-                `/api/messages?group=${encodeURIComponent(CURRENT_GROUP)}`
-            );
-
-        if(!response.ok){
-
-            return;
-        }
-
-        messages =
-            await response.json();
-
-        renderMessages();
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-
-function renderMessages(){
-
-    if(!messages.length){
-
-        messagesBox.innerHTML = `
-            <div class="empty">
-                <div>
-                    <h2>Welcome 👋</h2>
-                    <p>No messages yet.</p>
-                </div>
-            </div>
-        `;
-
-        return;
-    }
-
-
-    const filtered =
-        messages.filter(
-            message =>
-                message.group === CURRENT_GROUP
-        );
-
-
-    if(!filtered.length){
-
-        messagesBox.innerHTML = `
-            <div class="empty">
-                <div>
-                    <h2>Welcome 👋</h2>
-                    <p>Be the first to send a message.</p>
-                </div>
-            </div>
-        `;
-
-        return;
-    }
-
-
-    messagesBox.innerHTML =
-        filtered.map(message=>{
-
-            const mine =
-                message.username === USERNAME;
-
-            const roleClass =
-                message.role === "owner"
-                    ? "roleOwner"
-                    : message.role === "mod"
-                        ? "roleMod"
-                        : "";
-
-
-            return `
-                <div class="messageRow ${mine ? "mine" : ""}">
-
-                    <div class="messageBubble">
-
-                        ${
-                            !mine
-                            ? `
-                                <div class="messageUser ${roleClass}">
-                                    ${escapeHtml(message.username)}
-                                    ${
-                                        message.role === "owner"
-                                        ? " 👑"
-                                        : message.role === "mod"
-                                        ? " 🛡️"
-                                        : ""
-                                    }
-                                </div>
-                            `
-                            : ""
-                        }
-
-                        <div class="messageText">
-                            ${escapeHtml(message.text)}
-                        </div>
-
-                        <div class="messageTime">
-                            ${escapeHtml(message.time || "")}
-                        </div>
-
-                        ${
-                            message.kind === "command"
-                            ? `
-                                <div class="messageKind">
-                                    command
-                                </div>
-                            `
-                            : ""
-                        }
-
-                    </div>
-
-                </div>
-            `;
-
-        }).join("");
-
-
-    messagesBox.scrollTop =
-        messagesBox.scrollHeight;
-
-}
-
-
-/* =========================================================
-   SEND MESSAGE
-========================================================= */
-
-messageInput.addEventListener("keydown",e=>{
-
-    if(e.key === "Enter" && !e.shiftKey){
-
-        e.preventDefault();
-
-        sendMessage();
-
-    }
-
-});
-
-
-async function sendMessage(){
-
-    const text =
-        messageInput.value.trim();
-
-    if(!text){
-
-        return;
-    }
-
-
-    messageInput.value = "";
-
-
-    /* COMMAND */
-
-    if(text.startsWith("/")){
-
-        await runCommand(text);
-
-        return;
-    }
-
-
-    /* MUTED USER */
-
-    if(
-        USER_ROLE !== "owner" &&
-        window.__MUTED__
-    ){
-
-        showToast("You are muted.");
-
-        return;
-    }
-
-
-    /* SOCKET */
-
-    if(socket && socket.connected){
-
-        socket.emit(
-            "send_message",
-            {
-                username:USERNAME,
-                text:text,
-                group:CURRENT_GROUP
-            }
-        );
-
-        return;
-    }
-
-
-    /* HTTP FALLBACK */
-
-    try{
-
-        const response =
-            await fetch("/api/messages",{
-                method:"POST",
-                headers:{
-                    "Content-Type":
-                    "application/json"
-                },
-                body:JSON.stringify({
-                    username:USERNAME,
-                    text:text,
-                    group:CURRENT_GROUP
-                })
-            });
-
-
-        if(response.ok){
-
-            await loadMessages();
-
-        }else{
-
-            showToast(
-                "Message failed."
-            );
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-        showToast(
-            "Server connection failed."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   COMMANDS
-========================================================= */
-
-function openCommands(){
-
-    openModal("commandsModal");
-
-    setTimeout(()=>{
-        document
-            .getElementById("commandInput")
-            .focus();
-    },50);
-
-}
-
-
-function runCommandFromModal(){
-
-    const input =
-        document.getElementById("commandInput");
-
-    const command =
-        input.value.trim();
-
-    if(!command){
-
-        return;
-    }
-
-    closeModal("commandsModal");
-
-    input.value = "";
-
-    runCommand(command);
-
-}
-
-
-function quickCommand(command){
-
-    closeModal("commandsModal");
-
-    runCommand(command);
-
-}
-
-
-async function runCommand(command){
-
-    if(!command.startsWith("/")){
-
-        command =
-            "/" + command;
-
-    }
-
-    try{
-
-        const response =
-            await fetch("/api/command",{
-                method:"POST",
-                headers:{
-                    "Content-Type":
-                    "application/json"
-                },
-                body:JSON.stringify({
-                    username:USERNAME,
-                    command:command,
-                    group:CURRENT_GROUP
-                })
-            });
-
-
-        const data =
-            await response.json();
-
-
-        if(!response.ok){
-
-            showToast(
-                data.error ||
-                "Command failed."
-            );
-
-            return;
-        }
-
-
-        /*
-           Server emits command result
-           through Socket.IO.
-
-           For HTTP-only mode we render it here.
-        */
-
-        if(!socket || !socket.connected){
-
-            if(data.message){
-
-                const fakeMessage = {
-                    id:Date.now(),
-                    username:USERNAME,
-                    text:data.message,
-                    group:CURRENT_GROUP,
-                    time:new Date().toLocaleTimeString(
-                        [],
-                        {
-                            hour:"2-digit",
-                            minute:"2-digit"
-                        }
-                    ),
-                    kind:"command",
-                    role:USER_ROLE
-                };
-
-                messages.push(fakeMessage);
-
-                renderMessages();
-
-            }
-
-        }
-
-
-        runVisualEffect(command);
-
-    }catch(error){
-
-        console.error(error);
-
-        showToast(
-            "Command server error."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   VISUAL EFFECTS
-========================================================= */
-
-function runVisualEffect(command){
-
-    const cmd =
-        command.split(" ")[0].toLowerCase();
-
-    if(cmd === "/party" || cmd === "/disco"){
-
-        document.body.classList.add("flash");
-
-        setTimeout(()=>{
-            document.body.classList.remove("flash");
-        },500);
-
-    }
-
-
-    if(cmd === "/shake"){
-
-        document.body.classList.add("shake");
-
-        setTimeout(()=>{
-            document.body.classList.remove("shake");
-        },400);
-
-    }
-
-
-    if(cmd === "/matrix"){
-
-        for(let i=0;i<20;i++){
-
-            const el =
-                document.createElement("div");
-
-            el.textContent =
-                Math.random()
-                .toString(36)
-                .slice(2,12);
-
-            el.style.position = "fixed";
-            el.style.left =
-                Math.random()*100 + "%";
-            el.style.top = "-30px";
-            el.style.color = "#00ff9c";
-            el.style.fontWeight = "900";
-            el.style.zIndex = "400";
-            el.style.pointerEvents = "none";
-
-            document.body.appendChild(el);
-
-            const animation =
-                el.animate(
-                    [
-                        {transform:"translateY(0)"},
-                        {transform:"translateY(110vh)"}
-                    ],
-                    {
-                        duration:
-                            1500 +
-                            Math.random()*1800,
-                        easing:"linear"
-                    }
-                );
-
-            animation.onfinish =
-                ()=>el.remove();
-
-        }
-
-    }
-
-
-    if(
-        cmd === "/fireworks" ||
-        cmd === "/confetti"
-    ){
-
-        for(let i=0;i<45;i++){
-
-            const el =
-                document.createElement("div");
-
-            el.textContent = "✦";
-
-            el.style.position = "fixed";
-            el.style.left = "50%";
-            el.style.top = "50%";
-            el.style.zIndex = "400";
-            el.style.pointerEvents = "none";
-            el.style.fontSize = "20px";
-
-            document.body.appendChild(el);
-
-            const x =
-                (Math.random()-.5)*900;
-
-            const y =
-                (Math.random()-.5)*700;
-
-            const animation =
-                el.animate(
-                    [
-                        {
-                            transform:"translate(-50%,-50%) scale(1)"
-                        },
-                        {
-                            transform:
-                                `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(.2)`,
-                            opacity:0
-                        }
-                    ],
-                    {
-                        duration:
-                            900 +
-                            Math.random()*900,
-                        easing:"cubic-bezier(.2,.8,.2,1)"
-                    }
-                );
-
-            animation.onfinish =
-                ()=>el.remove();
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================
-   USERS
-========================================================= */
+/* ================= USERS ================= */
 
 async function loadUsers(){
 
@@ -2064,8 +1662,6 @@ async function loadUsers(){
             users =
                 await response.json();
 
-            renderUsers();
-
         }
 
     }catch(error){
@@ -2073,6 +1669,8 @@ async function loadUsers(){
         console.error(error);
 
     }
+
+    renderUsers();
 
 }
 
@@ -2086,7 +1684,9 @@ function renderUsers(){
         const item =
             document.createElement("div");
 
-        item.className = "userItem";
+        item.className =
+            "userItem";
+
 
         const roleClass =
             user.role === "owner"
@@ -2099,37 +1699,35 @@ function renderUsers(){
         item.innerHTML = `
 
             <div class="avatar">
-
                 ${escapeHtml(
                     user.username
                         .charAt(0)
                         .toUpperCase()
                 )}
-
             </div>
 
             <div class="userMeta">
 
                 <div class="userName ${roleClass}">
 
-                    ${escapeHtml(user.username)}
+                    ${escapeHtml(
+                        user.username
+                    )}
 
                     ${
                         user.role === "owner"
-                        ? " 👑"
-                        : user.role === "mod"
-                        ? " 🛡️"
-                        : ""
+                            ? " 👑"
+                            : user.role === "mod"
+                                ? " 🛡️"
+                                : ""
                     }
 
                 </div>
 
                 <div class="userRole">
-
                     ${escapeHtml(
-                        user.role || "user"
+                        user.role
                     )}
-
                 </div>
 
             </div>
@@ -2149,36 +1747,205 @@ function renderUsers(){
 function openUsersModal(){
 
     const body =
-        document.getElementById("usersModalBody");
+        document.getElementById(
+            "usersModalBody"
+        );
 
-    body.innerHTML =
-        users.map(user=>{
+
+    if(!users.length){
+
+        body.innerHTML =
+            "<p>No users online.</p>";
+
+    }else{
+
+        body.innerHTML =
+            users.map(user=>{
+
+                return `
+
+                    <div class="userItem">
+
+                        <div class="avatar">
+                            ${escapeHtml(
+                                user.username
+                                    .charAt(0)
+                                    .toUpperCase()
+                            )}
+                        </div>
+
+                        <div class="userMeta">
+
+                            <div class="userName">
+                                ${escapeHtml(
+                                    user.username
+                                )}
+                            </div>
+
+                            <div class="userRole">
+                                ${escapeHtml(
+                                    user.role
+                                )}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    openModal("usersModal");
+
+}
+
+
+/* ================= MESSAGES ================= */
+
+async function loadMessages(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/messages?group=" +
+                encodeURIComponent(
+                    CURRENT_GROUP
+                )
+            );
+
+
+        if(response.ok){
+
+            messages =
+                await response.json();
+
+            renderMessages();
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+
+function renderMessages(){
+
+    const filtered =
+        messages.filter(
+            message =>
+                message.group ===
+                CURRENT_GROUP
+        );
+
+
+    if(!filtered.length){
+
+        messagesBox.innerHTML = `
+
+            <div class="empty">
+
+                <div>
+
+                    <h2>Welcome 👋</h2>
+
+                    <p>
+                        No messages yet.
+                    </p>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    messagesBox.innerHTML =
+        filtered.map(message=>{
+
+            const mine =
+                message.username ===
+                USERNAME;
+
+
+            const roleClass =
+                message.role === "owner"
+                    ? "roleOwner"
+                    : message.role === "mod"
+                        ? "roleMod"
+                        : "";
+
 
             return `
 
-                <div class="userItem">
+                <div class="
+                    messageRow
+                    ${mine ? "mine" : ""}
+                ">
 
-                    <div class="avatar">
-                        ${escapeHtml(
-                            user.username
-                                .charAt(0)
-                                .toUpperCase()
-                        )}
-                    </div>
+                    <div class="messageBubble">
 
-                    <div class="userMeta">
+                        ${
+                            mine
+                            ? ""
+                            : `
+                                <div class="
+                                    messageUser
+                                    ${roleClass}
+                                ">
 
-                        <div class="userName">
+                                    ${escapeHtml(
+                                        message.username
+                                    )}
 
-                            ${escapeHtml(user.username)}
+                                    ${
+                                        message.role === "owner"
+                                            ? " 👑"
+                                            : message.role === "mod"
+                                                ? " 🛡️"
+                                                : ""
+                                    }
+
+                                </div>
+                            `
+                        }
+
+                        <div class="messageText">
+
+                            ${escapeHtml(
+                                message.text
+                            )}
 
                         </div>
 
-                        <div class="userRole">
+                        <div class="messageTime">
 
-                            ${escapeHtml(user.role)}
+                            ${escapeHtml(
+                                message.time || ""
+                            )}
 
                         </div>
+
+                        ${
+                            message.kind === "command"
+                                ? `
+                                    <div class="messageKind">
+                                        command
+                                    </div>
+                                `
+                                : ""
+                        }
 
                     </div>
 
@@ -2186,51 +1953,376 @@ function openUsersModal(){
 
             `;
 
-        }).join("") ||
-        "<p>No users online.</p>";
+        }).join("");
 
-    openModal("usersModal");
+
+    messagesBox.scrollTop =
+        messagesBox.scrollHeight;
 
 }
 
 
-/* =========================================================
-   SEARCH
-========================================================= */
+/* ================= SEND ================= */
+
+messageInput.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            event.key === "Enter" &&
+            !event.shiftKey
+        ){
+
+            event.preventDefault();
+
+            sendMessage();
+
+        }
+
+    }
+);
+
+
+async function sendMessage(){
+
+    const text =
+        messageInput.value.trim();
+
+    if(!text){
+        return;
+    }
+
+    messageInput.value = "";
+
+
+    if(text.startsWith("/")){
+
+        runCommand(text);
+
+        return;
+    }
+
+
+    try{
+
+        if(socket && socket.connected){
+
+            socket.emit(
+                "send_message",
+                {
+                    username:USERNAME,
+                    text:text,
+                    group:CURRENT_GROUP
+                }
+            );
+
+            return;
+        }
+
+
+        const response =
+            await fetch(
+                "/api/messages",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:JSON.stringify({
+                        username:USERNAME,
+                        text:text,
+                        group:CURRENT_GROUP
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showToast(
+                data.error ||
+                "Message failed."
+            );
+
+            return;
+        }
+
+
+        if(data.message){
+
+            messages.push(
+                data.message
+            );
+
+            renderMessages();
+
+        }
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Server connection failed."
+        );
+
+    }
+
+}
+
+
+/* ================= COMMANDS ================= */
+
+function openCommands(){
+
+    openModal(
+        "commandsModal"
+    );
+
+    setTimeout(()=>{
+        document
+            .getElementById("commandInput")
+            .focus();
+    },50);
+
+}
+
+
+function runCommandFromModal(){
+
+    const input =
+        document.getElementById(
+            "commandInput"
+        );
+
+    const command =
+        input.value.trim();
+
+    if(!command){
+        return;
+    }
+
+    input.value = "";
+
+    closeModal(
+        "commandsModal"
+    );
+
+    runCommand(command);
+
+}
+
+
+function quickCommand(command){
+
+    closeModal(
+        "commandsModal"
+    );
+
+    runCommand(command);
+
+}
+
+
+async function runCommand(command){
+
+    if(!command.startsWith("/")){
+
+        command =
+            "/" + command;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/command",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:JSON.stringify({
+                        username:USERNAME,
+                        command:command,
+                        group:CURRENT_GROUP
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showToast(
+                data.error ||
+                "Command failed."
+            );
+
+            return;
+        }
+
+
+        if(
+            (!socket || !socket.connected) &&
+            data.message
+        ){
+
+            messages.push({
+
+                id:
+                    Date.now() +
+                    Math.random(),
+
+                username:
+                    USERNAME,
+
+                text:
+                    data.message,
+
+                group:
+                    CURRENT_GROUP,
+
+                time:
+                    new Date()
+                        .toLocaleTimeString(
+                            [],
+                            {
+                                hour:"2-digit",
+                                minute:"2-digit"
+                            }
+                        ),
+
+                kind:"command",
+
+                role:
+                    USER_ROLE
+
+            });
+
+            renderMessages();
+
+        }
+
+
+        runEffect(command);
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Command server error."
+        );
+
+    }
+
+}
+
+
+/* ================= EFFECTS ================= */
+
+function runEffect(command){
+
+    const cmd =
+        command
+            .split(" ")[0]
+            .toLowerCase();
+
+
+    if(
+        cmd === "/party" ||
+        cmd === "/disco"
+    ){
+
+        document.body.classList.add(
+            "flash"
+        );
+
+        setTimeout(()=>{
+            document.body.classList.remove(
+                "flash"
+            );
+        },500);
+
+    }
+
+
+    if(cmd === "/shake"){
+
+        document.body.classList.add(
+            "shake"
+        );
+
+        setTimeout(()=>{
+            document.body.classList.remove(
+                "shake"
+            );
+        },400);
+
+    }
+
+}
+
+
+/* ================= SEARCH ================= */
 
 function searchEverything(){
 
-    const search =
-        document
-            .getElementById("searchInput")
-            .value
+    const input =
+        document.getElementById(
+            "searchInput"
+        );
+
+    const value =
+        input.value
             .trim()
             .toLowerCase();
 
 
-    if(!search){
+    if(!value){
 
         renderGroups();
-
         renderUsers();
 
         return;
     }
 
 
-    const filteredGroups =
+    const matchingGroups =
         groups.filter(
             group =>
                 group.name
                     .toLowerCase()
-                    .includes(search)
+                    .includes(value)
+        );
+
+
+    const matchingUsers =
+        users.filter(
+            user =>
+                user.username
+                    .toLowerCase()
+                    .includes(value)
         );
 
 
     groupList.innerHTML =
-        filteredGroups.map(group=>{
-
-            return `
+        matchingGroups.map(
+            group=>`
 
                 <div
                     class="groupItem"
@@ -2248,33 +2340,22 @@ function searchEverything(){
                     <div class="userMeta">
 
                         <div class="userName">
-
-                            ${escapeHtml(group.name)}
-
+                            ${escapeHtml(
+                                group.name
+                            )}
                         </div>
 
                     </div>
 
                 </div>
 
-            `;
-
-        }).join("");
-
-
-    const filteredUsers =
-        users.filter(
-            user =>
-                user.username
-                    .toLowerCase()
-                    .includes(search)
-        );
+            `
+        ).join("");
 
 
     userList.innerHTML =
-        filteredUsers.map(user=>{
-
-            return `
+        matchingUsers.map(
+            user=>`
 
                 <div class="userItem">
 
@@ -2289,57 +2370,28 @@ function searchEverything(){
                     <div class="userMeta">
 
                         <div class="userName">
-
-                            ${escapeHtml(user.username)}
-
+                            ${escapeHtml(
+                                user.username
+                            )}
                         </div>
 
                         <div class="userRole">
-
                             ${escapeHtml(
                                 user.role
                             )}
-
                         </div>
 
                     </div>
 
                 </div>
 
-            `;
-
-        }).join("");
-
-}
-
-
-function selectGroup(id){
-
-    const group =
-        groups.find(
-            g => g.id === id
-        );
-
-    if(!group){
-
-        return;
-    }
-
-    CURRENT_GROUP = id;
-
-    groupTitle.textContent =
-        group.name;
-
-    renderGroups();
-
-    loadMessages();
+            `
+        ).join("");
 
 }
 
 
-/* =========================================================
-   MOBILE
-========================================================= */
+/* ================= MOBILE ================= */
 
 function toggleSidebar(){
 
@@ -2350,9 +2402,7 @@ function toggleSidebar(){
 }
 
 
-/* =========================================================
-   AUTO REFRESH FALLBACK
-========================================================= */
+/* ================= FALLBACK ================= */
 
 setInterval(()=>{
 
@@ -2362,17 +2412,22 @@ setInterval(()=>{
     ){
 
         loadMessages();
-
         loadUsers();
+        loadGroups();
 
     }
 
-},2500);
+},3000);
 
 
-/* =========================================================
-   STARTUP
-========================================================= */
+/* ================= START ================= */
+
+groups = [
+    {
+        id:"main",
+        name:"MATIA CHAT"
+    }
+];
 
 renderGroups();
 
