@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MATIA CHAT</title>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
@@ -14,30 +14,25 @@
     padding:0;
 }
 
-:root{
-    --bg:#07100d;
-    --panel:#0b1713;
-    --panel2:#0f211b;
-    --panel3:#12291f;
-    --border:rgba(255,255,255,.08);
-    --text:#f3fff9;
-    --muted:#8da59a;
-    --green:#20e88a;
-    --green2:#0fbf70;
-    --danger:#ff4567;
-    --yellow:#ffd54a;
-    --shadow:0 20px 60px rgba(0,0,0,.45);
-}
-
 body{
-    font-family:Inter,Segoe UI,Arial,sans-serif;
-    background:
-        radial-gradient(circle at 15% 10%,rgba(32,232,138,.10),transparent 25%),
-        radial-gradient(circle at 85% 80%,rgba(0,180,255,.08),transparent 25%),
-        var(--bg);
-    color:var(--text);
+    font-family:Arial,Helvetica,sans-serif;
+    background:#0b141a;
+    color:#e9edef;
     height:100vh;
     overflow:hidden;
+}
+
+button,
+input{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none !important;
 }
 
 /* LOGIN */
@@ -48,302 +43,213 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    overflow:hidden;
-    z-index:9999;
-}
-
-.login-bg{
-    position:absolute;
-    inset:0;
     background:
-        linear-gradient(rgba(7,16,13,.78),rgba(7,16,13,.92)),
-        radial-gradient(circle at center,#123c2c 0,#07100d 55%);
+        radial-gradient(circle at top,#123326 0,#07110e 42%,#050809 100%);
 }
 
-.grid{
-    position:absolute;
-    inset:-100px;
-    background-image:
-        linear-gradient(rgba(32,232,138,.04) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(32,232,138,.04) 1px,transparent 1px);
-    background-size:45px 45px;
-    transform:perspective(500px) rotateX(60deg) scale(1.5);
-    animation:gridMove 10s linear infinite;
-}
-
-@keyframes gridMove{
-    from{transform:perspective(500px) rotateX(60deg) translateY(0) scale(1.5)}
-    to{transform:perspective(500px) rotateX(60deg) translateY(45px) scale(1.5)}
-}
-
-.login-card{
-    position:relative;
-    width:min(450px,92%);
-    padding:42px;
-    border:1px solid rgba(32,232,138,.18);
-    background:rgba(7,17,13,.76);
-    backdrop-filter:blur(25px);
-    border-radius:28px;
-    box-shadow:0 0 100px rgba(32,232,138,.09),var(--shadow);
+.loginCard{
+    width:min(430px,92vw);
+    padding:36px;
+    border:1px solid #214b3b;
+    border-radius:24px;
+    background:rgba(10,22,18,.94);
+    box-shadow:0 30px 100px rgba(0,0,0,.55);
     text-align:center;
 }
 
 .logo{
-    width:86px;
-    height:86px;
-    margin:auto;
+    width:78px;
+    height:78px;
+    margin:0 auto 18px;
+    border-radius:22px;
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:25px;
-    background:linear-gradient(135deg,#20e88a,#087d4c);
-    box-shadow:0 0 45px rgba(32,232,138,.3);
-    font-size:42px;
+    font-size:30px;
     font-weight:900;
-    color:#04150d;
-}
-
-.login-card h1{
-    margin-top:22px;
-    font-size:34px;
-    letter-spacing:4px;
-}
-
-.login-card h1 span{
-    color:var(--green);
-}
-
-.login-card p{
-    margin-top:10px;
-    color:var(--muted);
-}
-
-.login-input{
-    margin-top:28px;
-    width:100%;
-    padding:17px 18px;
-    border:1px solid var(--border);
-    border-radius:15px;
-    background:#09140f;
     color:white;
-    outline:none;
-    font-size:16px;
-    transition:.2s;
+    background:linear-gradient(135deg,#00a884,#087f5b);
+    box-shadow:0 15px 40px rgba(0,168,132,.24);
 }
 
-.login-input:focus{
-    border-color:var(--green);
-    box-shadow:0 0 0 4px rgba(32,232,138,.08);
+.loginCard h1{
+    font-size:34px;
+    margin-bottom:8px;
 }
 
-.connect{
+.loginCard p{
+    color:#9ba8ad;
+    margin-bottom:26px;
+}
+
+#username{
     width:100%;
-    margin-top:13px;
-    padding:17px;
+    padding:15px 17px;
+    border-radius:14px;
+    border:1px solid #29453b;
+    outline:none;
+    background:#111d19;
+    color:white;
+    margin-bottom:12px;
+}
+
+#username:focus{
+    border-color:#00a884;
+}
+
+#connectBtn{
+    width:100%;
+    padding:15px;
     border:0;
-    border-radius:15px;
-    background:linear-gradient(135deg,#20e88a,#0bbf6e);
-    color:#04150d;
-    font-weight:900;
-    font-size:16px;
-    cursor:pointer;
-    transition:.2s;
+    border-radius:14px;
+    color:white;
+    font-weight:800;
+    background:#00a884;
 }
 
-.connect:hover{
-    transform:translateY(-2px);
-    box-shadow:0 12px 30px rgba(32,232,138,.2);
-}
-
-.login-status{
-    margin-top:17px;
-    font-size:12px;
-    color:#6f8c7f;
+#connectBtn:hover{
+    background:#02bd96;
 }
 
 /* APP */
 
 #app{
-    display:none;
     height:100vh;
-    width:100%;
-}
-
-.layout{
     display:flex;
-    height:100%;
 }
 
 /* SIDEBAR */
 
 .sidebar{
-    width:340px;
-    min-width:340px;
-    background:rgba(8,20,15,.95);
-    border-right:1px solid var(--border);
+    width:330px;
+    min-width:330px;
+    background:#111b21;
+    border-right:1px solid #243036;
     display:flex;
     flex-direction:column;
 }
 
-.sidebar-top{
-    padding:18px;
-    border-bottom:1px solid var(--border);
+.sideTop{
+    padding:16px;
+    background:#202c33;
 }
 
-.brand{
+.sideBrand{
     display:flex;
     align-items:center;
-    gap:12px;
-    margin-bottom:17px;
+    justify-content:space-between;
+    margin-bottom:14px;
 }
 
-.brand-icon{
-    width:45px;
-    height:45px;
+.sideBrand strong{
+    font-size:22px;
+}
+
+.sideButtons{
     display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:14px;
-    background:linear-gradient(135deg,#20e88a,#0b8c54);
-    color:#03130b;
-    font-weight:1000;
-    box-shadow:0 0 25px rgba(32,232,138,.15);
+    gap:7px;
 }
 
-.brand-text{
-    font-size:19px;
-    font-weight:900;
-    letter-spacing:2px;
+.iconBtn{
+    width:38px;
+    height:38px;
+    border:0;
+    border-radius:50%;
+    background:#18252b;
+    color:#dce6e8;
 }
 
-.brand-text span{
-    color:var(--green);
+.iconBtn:hover{
+    background:#26343b;
 }
 
-.search{
+.searchBox{
     width:100%;
-    padding:13px 15px;
-    border:1px solid var(--border);
-    background:#09150f;
-    border-radius:13px;
+    background:#111b21;
+    border-radius:12px;
+    padding:10px 13px;
+    border:1px solid #24343a;
     color:white;
     outline:none;
 }
 
-.search:focus{
-    border-color:rgba(32,232,138,.4);
+.sectionTitle{
+    padding:13px 17px 8px;
+    color:#7f8c91;
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.08em;
 }
 
-.sidebar-actions{
-    display:flex;
-    gap:8px;
-    margin-top:10px;
+.groupList,
+.userList{
+    overflow:auto;
 }
 
-.small-btn{
-    flex:1;
-    padding:11px;
-    border:1px solid var(--border);
-    background:#0c1c15;
-    color:#b7c9c0;
-    border-radius:11px;
-    cursor:pointer;
-}
-
-.small-btn:hover{
-    color:white;
-    border-color:rgba(32,232,138,.3);
-}
-
-/* PROFILE */
-
-.profile{
-    padding:16px;
+.groupItem,
+.userItem{
+    padding:12px 15px;
     display:flex;
     align-items:center;
-    gap:12px;
-    border-bottom:1px solid var(--border);
+    gap:11px;
+    cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,.025);
+}
+
+.groupItem:hover,
+.userItem:hover{
+    background:#202c33;
+}
+
+.groupItem.active{
+    background:#26353c;
 }
 
 .avatar{
-    width:48px;
-    height:48px;
-    min-width:48px;
-    border-radius:15px;
-    background:linear-gradient(135deg,#20e88a,#087a4b);
-    color:#03130b;
+    width:43px;
+    height:43px;
+    border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-weight:1000;
-    font-size:19px;
+    background:#00a884;
+    color:white;
+    font-weight:900;
+    flex:none;
 }
 
-.profile-info{
-    min-width:0;
+.userMeta{
     flex:1;
+    min-width:0;
 }
 
-.profile-name{
-    font-weight:800;
+.userName{
+    font-weight:700;
+    white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
-    white-space:nowrap;
 }
 
-.profile-role{
-    color:var(--green);
+.userRole{
     font-size:12px;
+    color:#86979d;
     margin-top:3px;
 }
 
-/* USER LIST */
-
-.user-title{
-    padding:16px 18px 8px;
-    color:#718b80;
-    text-transform:uppercase;
-    font-size:11px;
-    letter-spacing:2px;
+.roleOwner{
+    color:#ffcc66;
 }
 
-.user-list{
-    overflow:auto;
-    flex:1;
+.roleMod{
+    color:#5ecbff;
 }
 
-.user-item{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:12px 18px;
-    transition:.15s;
-}
-
-.user-item:hover{
-    background:rgba(255,255,255,.025);
-}
-
-.status-dot{
+.statusDot{
     width:9px;
     height:9px;
     border-radius:50%;
-    background:#4d5b55;
-}
-
-.status-dot.online{
-    background:var(--green);
-    box-shadow:0 0 10px rgba(32,232,138,.6);
-}
-
-.user-item-name{
-    font-size:14px;
-    font-weight:700;
-}
-
-.user-item-role{
-    color:#637c71;
-    font-size:11px;
+    background:#2bd576;
 }
 
 /* CHAT */
@@ -353,74 +259,58 @@ body{
     min-width:0;
     display:flex;
     flex-direction:column;
-    background:
-        radial-gradient(circle at 80% 10%,rgba(32,232,138,.035),transparent 25%),
-        #07110d;
+    background:#0b141a;
 }
 
-.chat-header{
-    height:76px;
-    min-height:76px;
+.chatHeader{
+    height:72px;
+    background:#202c33;
     display:flex;
     align-items:center;
-    padding:0 22px;
-    border-bottom:1px solid var(--border);
-    background:rgba(8,19,14,.85);
-    backdrop-filter:blur(15px);
+    padding:0 18px;
+    border-bottom:1px solid #263239;
 }
 
-.chat-group-avatar{
-    width:47px;
-    height:47px;
-    border-radius:15px;
-    background:linear-gradient(135deg,#20e88a,#0a8050);
-    color:#03130b;
+.headerAvatar{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:#00a884;
     display:flex;
+    align-items:center;
     justify-content:center;
-    align-items:center;
-    font-weight:1000;
-    margin-right:13px;
-}
-
-.chat-title{
     font-weight:900;
+    margin-right:12px;
 }
 
-.chat-sub{
+.headerInfo{
+    flex:1;
+}
+
+.headerTitle{
+    font-size:17px;
+    font-weight:800;
+}
+
+.headerSub{
     font-size:12px;
-    color:#6f8c7f;
+    color:#91a0a5;
     margin-top:3px;
 }
 
-.header-buttons{
-    margin-left:auto;
+.headerActions{
     display:flex;
     gap:8px;
 }
 
-.icon-btn{
-    width:40px;
-    height:40px;
-    border:1px solid var(--border);
-    border-radius:12px;
-    background:#0b1b14;
-    color:#b6c9c0;
-    cursor:pointer;
-    font-size:17px;
-}
-
-.icon-btn:hover{
-    color:white;
-    border-color:rgba(32,232,138,.35);
-}
-
-/* MESSAGES */
-
 .messages{
     flex:1;
-    overflow-y:auto;
+    overflow:auto;
     padding:24px 7%;
-    scroll-behavior:smooth;
+    background:
+        radial-gradient(circle at 20% 20%,rgba(0,168,132,.04),transparent 28%),
+        radial-gradient(circle at 80% 80%,rgba(0,168,132,.035),transparent 30%),
+        #0b141a;
 }
 
 .empty{
@@ -428,289 +318,188 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
+    color:#78868c;
     text-align:center;
-    color:#668074;
 }
 
-.empty-icon{
-    font-size:55px;
-    margin-bottom:15px;
-}
-
-.message{
+.messageRow{
     display:flex;
-    gap:10px;
-    margin-bottom:15px;
-    animation:messageIn .2s ease;
+    margin-bottom:8px;
 }
 
-@keyframes messageIn{
-    from{
-        opacity:0;
-        transform:translateY(7px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-.message.me{
+.messageRow.mine{
     justify-content:flex-end;
 }
 
-.message.me .bubble{
-    background:linear-gradient(135deg,#104f35,#0c3b29);
-    border-color:rgba(32,232,138,.13);
+.messageBubble{
+    max-width:min(72%,650px);
+    padding:8px 11px 7px;
+    border-radius:8px;
+    position:relative;
+    box-shadow:0 1px 1px rgba(0,0,0,.22);
 }
 
-.message.bot .bubble{
-    border-color:rgba(32,232,138,.22);
-    background:#0b2017;
+.messageRow:not(.mine) .messageBubble{
+    background:#202c33;
+    border-top-left-radius:2px;
 }
 
-.message.system{
-    justify-content:center;
+.messageRow.mine .messageBubble{
+    background:#005c4b;
+    border-top-right-radius:2px;
 }
 
-.message.system .bubble{
-    background:rgba(255,255,255,.025);
-    color:#91a69c;
+.messageUser{
     font-size:12px;
-    border-radius:100px;
-}
-
-.bubble{
-    max-width:min(700px,80%);
-    padding:11px 14px;
-    background:#0c1914;
-    border:1px solid var(--border);
-    border-radius:17px;
-    box-shadow:0 5px 20px rgba(0,0,0,.08);
-}
-
-.message-name{
-    color:var(--green);
-    font-size:12px;
-    font-weight:900;
+    font-weight:800;
     margin-bottom:4px;
+    color:#61d1b5;
 }
 
-.message-text{
+.messageText{
+    line-height:1.4;
     white-space:pre-wrap;
     word-break:break-word;
-    line-height:1.45;
-    font-size:14px;
 }
 
-.message-time{
-    margin-top:5px;
-    text-align:right;
+.messageTime{
     font-size:10px;
-    color:#61786e;
+    color:#a6b5b8;
+    text-align:right;
+    margin-top:5px;
+}
+
+.messageKind{
+    font-size:10px;
+    opacity:.75;
+    margin-top:2px;
 }
 
 /* COMPOSER */
 
 .composer{
-    padding:15px 6%;
-    border-top:1px solid var(--border);
-    background:rgba(7,16,12,.9);
-}
-
-.composer-inner{
+    min-height:68px;
     display:flex;
-    align-items:flex-end;
+    align-items:center;
     gap:9px;
-    max-width:1100px;
-    margin:auto;
+    padding:12px 18px;
+    background:#202c33;
 }
 
-.message-input{
+#messageInput{
     flex:1;
-    min-height:48px;
-    max-height:140px;
-    resize:none;
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:14px 15px;
-    background:#0b1913;
-    color:white;
-    outline:none;
-    font-family:inherit;
-}
-
-.message-input:focus{
-    border-color:rgba(32,232,138,.35);
-}
-
-.send-btn{
-    width:50px;
-    height:48px;
+    background:#2a3941;
     border:0;
-    border-radius:15px;
-    background:linear-gradient(135deg,#20e88a,#0dbd6d);
-    color:#03130b;
-    font-size:20px;
-    cursor:pointer;
-    font-weight:900;
+    outline:none;
+    color:white;
+    border-radius:22px;
+    padding:13px 17px;
 }
 
-.command-hint{
-    max-width:1100px;
-    margin:7px auto 0;
-    color:#50675d;
-    font-size:11px;
+#sendBtn{
+    width:47px;
+    height:47px;
+    border:0;
+    border-radius:50%;
+    background:#00a884;
+    color:white;
+    font-size:19px;
 }
 
 /* MODALS */
 
-.modal{
+.modalBack{
     position:fixed;
     inset:0;
     background:rgba(0,0,0,.65);
-    backdrop-filter:blur(8px);
-    display:none;
+    display:flex;
     align-items:center;
     justify-content:center;
-    z-index:8000;
-    padding:20px;
+    z-index:100;
 }
 
-.modal.show{
-    display:flex;
-}
-
-.modal-card{
-    width:min(620px,100%);
+.modal{
+    width:min(520px,92vw);
     max-height:85vh;
     overflow:auto;
-    background:#0a1812;
-    border:1px solid var(--border);
-    border-radius:24px;
-    box-shadow:var(--shadow);
-    padding:25px;
+    background:#111b21;
+    border:1px solid #29363c;
+    border-radius:18px;
+    box-shadow:0 25px 100px rgba(0,0,0,.5);
 }
 
-.modal-head{
+.modalHead{
+    padding:17px 18px;
     display:flex;
+    justify-content:space-between;
     align-items:center;
-    margin-bottom:20px;
+    border-bottom:1px solid #263239;
 }
 
-.modal-head h2{
-    font-size:20px;
+.modalBody{
+    padding:18px;
 }
 
-.modal-close{
-    margin-left:auto;
-    width:36px;
-    height:36px;
-    border:1px solid var(--border);
-    background:#101f18;
-    color:white;
-    border-radius:10px;
-    cursor:pointer;
-}
-
-.setting{
-    padding:15px;
-    background:#0e2018;
-    border:1px solid var(--border);
-    border-radius:15px;
+.modalBody input{
+    width:100%;
+    padding:13px;
     margin-bottom:10px;
+    border-radius:11px;
+    border:1px solid #304047;
+    background:#18252b;
+    color:white;
+    outline:none;
 }
 
-.setting-title{
+.modalPrimary{
+    width:100%;
+    padding:13px;
+    border:0;
+    border-radius:11px;
+    background:#00a884;
+    color:white;
     font-weight:800;
 }
 
-.setting-desc{
-    margin-top:4px;
-    color:#72897f;
-    font-size:12px;
-}
-
-.command-grid{
+.commandGrid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    gap:9px;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin-top:10px;
 }
 
-.command-card{
-    padding:13px;
-    background:#0d2118;
-    border:1px solid var(--border);
-    border-radius:13px;
-    cursor:pointer;
-    transition:.15s;
+.commandBtn{
+    padding:11px;
+    border:1px solid #314047;
+    border-radius:10px;
+    background:#18252b;
+    color:#dfe8ea;
+    text-align:left;
 }
 
-.command-card:hover{
-    transform:translateY(-2px);
-    border-color:rgba(32,232,138,.3);
+.commandBtn:hover{
+    background:#25353c;
 }
 
-.command-card b{
-    color:var(--green);
-    display:block;
-    margin-bottom:4px;
-}
-
-.command-card span{
-    color:#70887d;
-    font-size:11px;
-}
-
-/* TOAST */
-
-#toast{
+.toast{
     position:fixed;
-    left:50%;
-    bottom:28px;
-    transform:translate(-50%,20px);
-    background:#10231a;
-    border:1px solid rgba(32,232,138,.2);
+    right:20px;
+    bottom:85px;
+    padding:12px 15px;
+    border-radius:10px;
+    background:#1d2b31;
     color:white;
-    padding:12px 17px;
-    border-radius:13px;
+    border:1px solid #33444b;
+    z-index:200;
     opacity:0;
+    transform:translateY(10px);
     pointer-events:none;
-    transition:.25s;
-    z-index:10000;
-    box-shadow:var(--shadow);
+    transition:.2s;
 }
 
-#toast.show{
+.toast.show{
     opacity:1;
-    transform:translate(-50%,0);
-}
-
-/* ANNOUNCEMENT */
-
-#announcement{
-    position:fixed;
-    top:25px;
-    left:50%;
-    transform:translate(-50%,-150%);
-    width:min(700px,90%);
-    padding:18px 22px;
-    border-radius:18px;
-    background:linear-gradient(135deg,#143f2d,#0b2118);
-    border:1px solid rgba(32,232,138,.3);
-    box-shadow:0 20px 60px rgba(0,0,0,.4);
-    z-index:11000;
-    transition:.4s;
-}
-
-#announcement.show{
-    transform:translate(-50%,0);
-}
-
-.announcement-title{
-    color:var(--green);
-    font-weight:1000;
-    margin-bottom:5px;
+    transform:translateY(0);
 }
 
 /* EFFECTS */
@@ -719,111 +508,60 @@ body{
     position:fixed;
     inset:0;
     pointer-events:none;
-    z-index:9000;
-    overflow:hidden;
+    z-index:300;
 }
 
-.rainbow{
-    animation:rainbow 1s infinite linear;
+.flash{
+    animation:flash .45s;
 }
 
-@keyframes rainbow{
-    0%{filter:hue-rotate(0deg)}
-    100%{filter:hue-rotate(360deg)}
+@keyframes flash{
+    0%{filter:brightness(1)}
+    50%{filter:brightness(2)}
+    100%{filter:brightness(1)}
 }
 
-.matrix-char{
-    position:absolute;
-    top:-40px;
-    color:#20e88a;
-    font-family:monospace;
-    font-size:18px;
-    animation:fall linear forwards;
-    text-shadow:0 0 8px #20e88a;
+.shake{
+    animation:shake .35s;
 }
 
-@keyframes fall{
-    to{transform:translateY(110vh);opacity:0}
-}
-
-.confetti{
-    position:absolute;
-    width:9px;
-    height:15px;
-    top:-20px;
-    animation:confettiFall 2.5s linear forwards;
-}
-
-@keyframes confettiFall{
-    to{
-        transform:translateY(110vh) rotate(720deg);
-        opacity:0;
-    }
-}
-
-.firework{
-    position:absolute;
-    width:6px;
-    height:6px;
-    border-radius:50%;
-    background:white;
-    animation:boom 1s ease-out forwards;
-}
-
-@keyframes boom{
-    0%{
-        box-shadow:0 0 0 0 white;
-        opacity:1;
-    }
-    100%{
-        box-shadow:
-            0 -100px 0 2px white,
-            70px -70px 0 2px white,
-            100px 0 0 2px white,
-            70px 70px 0 2px white,
-            0 100px 0 2px white,
-            -70px 70px 0 2px white,
-            -100px 0 0 2px white,
-            -70px -70px 0 2px white;
-        opacity:0;
-    }
+@keyframes shake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-7px)}
+    50%{transform:translateX(7px)}
+    75%{transform:translateX(-4px)}
 }
 
 /* MOBILE */
 
-.mobile-menu{
+.mobileMenu{
     display:none;
 }
 
-@media(max-width:850px){
+@media(max-width:800px){
 
     .sidebar{
         position:fixed;
-        left:-350px;
-        top:0;
-        bottom:0;
-        z-index:7000;
-        transition:.25s;
-        box-shadow:20px 0 60px rgba(0,0,0,.4);
+        inset:0 auto 0 0;
+        z-index:50;
+        transform:translateX(-100%);
+        transition:.2s;
     }
 
     .sidebar.open{
-        left:0;
+        transform:translateX(0);
     }
 
-    .mobile-menu{
+    .mobileMenu{
         display:block;
+        margin-right:8px;
     }
 
     .messages{
         padding:18px 12px;
     }
 
-    .composer{
-        padding:10px;
-    }
-
-    .bubble{
+    .messageBubble{
         max-width:88%;
     }
 }
@@ -832,427 +570,240 @@ body{
 
 <body>
 
-<!-- =====================================================
-     LOGIN
-===================================================== -->
-
+<!-- LOGIN -->
 <div id="loginScreen">
 
-    <div class="login-bg"></div>
-    <div class="grid"></div>
-
-    <div class="login-card">
+    <div class="loginCard">
 
         <div class="logo">M</div>
 
-        <h1>MATIA <span>CHAT</span></h1>
+        <h1>MATIA CHAT</h1>
 
-        <p>
-            Private realtime community chat
-        </p>
+        <p>Enter your username and start chatting.</p>
 
         <input
             id="username"
-            class="login-input"
-            placeholder="Enter your username..."
             maxlength="24"
+            placeholder="Your username"
             autocomplete="off"
         >
 
-        <button
-            id="connectBtn"
-            class="connect"
-            onclick="connectUser()"
-        >
-            🚀 CONNECT
+        <button id="connectBtn">
+            CONNECT
         </button>
 
-        <div class="login-status">
-            ⚡ Chat opens instantly • Server connects in background
-        </div>
-
     </div>
+
 </div>
 
 
-<!-- =====================================================
-     APP
-===================================================== -->
+<!-- APP -->
+<div id="app" class="hidden">
 
-<div id="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
 
-    <div class="layout">
+        <div class="sideTop">
 
-        <!-- SIDEBAR -->
+            <div class="sideBrand">
 
-        <aside class="sidebar" id="sidebar">
+                <strong>MATIA CHAT</strong>
 
-            <div class="sidebar-top">
-
-                <div class="brand">
-
-                    <div class="brand-icon">
-                        M
-                    </div>
-
-                    <div class="brand-text">
-                        MATIA <span>CHAT</span>
-                    </div>
-
-                </div>
-
-                <input
-                    id="searchInput"
-                    class="search"
-                    placeholder="🔎 Search..."
-                    oninput="searchUsers()"
-                >
-
-                <div class="sidebar-actions">
+                <div class="sideButtons">
 
                     <button
-                        class="small-btn"
+                        class="iconBtn"
+                        onclick="openGroupModal()"
+                        title="Create new group"
+                    >
+                        ＋
+                    </button>
+
+                    <button
+                        class="iconBtn"
                         onclick="openCommands()"
+                        title="Commands"
                     >
-                        ⚡ Commands
-                    </button>
-
-                    <button
-                        class="small-btn"
-                        onclick="openSettings()"
-                    >
-                        ⚙ Settings
+                        /
                     </button>
 
                 </div>
 
             </div>
 
-
-            <!-- PROFILE -->
-
-            <div class="profile">
-
-                <div
-                    class="avatar"
-                    id="myAvatar"
-                >
-                    M
-                </div>
-
-                <div class="profile-info">
-
-                    <div
-                        class="profile-name"
-                        id="myName"
-                    >
-                        Matia
-                    </div>
-
-                    <div
-                        class="profile-role"
-                        id="myRole"
-                    >
-                        MEMBER
-                    </div>
-
-                </div>
-
-                <div
-                    class="status-dot online"
-                    title="Online"
-                ></div>
-
-            </div>
-
-
-            <div class="user-title">
-                Online members
-            </div>
-
-            <div
-                class="user-list"
-                id="userList"
-            ></div>
-
-        </aside>
-
-
-        <!-- CHAT -->
-
-        <main class="chat">
-
-            <header class="chat-header">
-
-                <button
-                    class="icon-btn mobile-menu"
-                    onclick="toggleSidebar()"
-                >
-                    ☰
-                </button>
-
-                <div class="chat-group-avatar">
-                    M
-                </div>
-
-                <div>
-
-                    <div
-                        class="chat-title"
-                        id="groupName"
-                    >
-                        MATIA CHAT
-                    </div>
-
-                    <div
-                        class="chat-sub"
-                        id="groupStatus"
-                    >
-                        🟢 Community online
-                    </div>
-
-                </div>
-
-                <div class="header-buttons">
-
-                    <button
-                        class="icon-btn"
-                        onclick="openUsers()"
-                    >
-                        👥
-                    </button>
-
-                    <button
-                        class="icon-btn"
-                        onclick="openCommands()"
-                    >
-                        ⚡
-                    </button>
-
-                </div>
-
-            </header>
-
-
-            <section
-                class="messages"
-                id="messages"
+            <input
+                class="searchBox"
+                id="searchInput"
+                placeholder="Search..."
+                oninput="searchEverything()"
             >
 
-                <div class="empty" id="emptyState">
+        </div>
 
-                    <div>
 
-                        <div class="empty-icon">
-                            💬
-                        </div>
+        <div class="sectionTitle">
+            Groups
+        </div>
 
-                        <h2>Welcome to MATIA CHAT</h2>
+        <div
+            class="groupList"
+            id="groupList"
+        ></div>
 
-                        <p style="margin-top:7px">
-                            Send a message or try <b>/help</b>
-                        </p>
 
-                    </div>
+        <div class="sectionTitle">
+            Online users
+        </div>
 
+        <div
+            class="userList"
+            id="userList"
+        ></div>
+
+    </aside>
+
+
+    <!-- CHAT -->
+    <main class="chat">
+
+        <header class="chatHeader">
+
+            <button
+                class="iconBtn mobileMenu"
+                onclick="toggleSidebar()"
+            >
+                ☰
+            </button>
+
+            <div
+                class="headerAvatar"
+                id="headerAvatar"
+            >
+                M
+            </div>
+
+            <div class="headerInfo">
+
+                <div
+                    class="headerTitle"
+                    id="groupTitle"
+                >
+                    MATIA CHAT
                 </div>
 
-            </section>
-
-
-            <footer class="composer">
-
-                <div class="composer-inner">
-
-                    <textarea
-                        id="messageInput"
-                        class="message-input"
-                        rows="1"
-                        placeholder="Write a message... or type /help"
-                    ></textarea>
-
-                    <button
-                        class="send-btn"
-                        onclick="sendMessage()"
-                    >
-                        ➤
-                    </button>
-
+                <div
+                    class="headerSub"
+                    id="groupSub"
+                >
+                    Connecting...
                 </div>
 
-                <div class="command-hint">
-                    Try:
-                    /fun
-                    /dice
-                    /joke
-                    /8ball
-                    /matrix
-                    /party
-                    /help
+            </div>
+
+            <div class="headerActions">
+
+                <button
+                    class="iconBtn"
+                    onclick="openUsersModal()"
+                    title="Users"
+                >
+                    👥
+                </button>
+
+                <button
+                    class="iconBtn"
+                    onclick="openCommands()"
+                    title="Commands"
+                >
+                    ⚡
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section
+            class="messages"
+            id="messages"
+        >
+
+            <div class="empty">
+                <div>
+                    <h2>Welcome to MATIA CHAT 👋</h2>
+                    <p>Send your first message.</p>
                 </div>
+            </div>
 
-            </footer>
+        </section>
 
-        </main>
 
-    </div>
+        <footer class="composer">
+
+            <button
+                class="iconBtn"
+                onclick="openCommands()"
+                title="Commands"
+            >
+                ＋
+            </button>
+
+            <input
+                id="messageInput"
+                placeholder="Type a message..."
+                autocomplete="off"
+            >
+
+            <button
+                id="sendBtn"
+                onclick="sendMessage()"
+            >
+                ➤
+            </button>
+
+        </footer>
+
+    </main>
 
 </div>
 
 
-<!-- =====================================================
-     COMMAND MODAL
-===================================================== -->
+<!-- GROUP MODAL -->
 
 <div
-    class="modal"
-    id="commandModal"
+    class="modalBack hidden"
+    id="groupModal"
 >
 
-    <div class="modal-card">
+    <div class="modal">
 
-        <div class="modal-head">
+        <div class="modalHead">
 
-            <h2>⚡ MATIA COMMAND CENTER</h2>
+            <strong>Create New Group</strong>
 
             <button
-                class="modal-close"
-                onclick="closeModal('commandModal')"
+                class="iconBtn"
+                onclick="closeModal('groupModal')"
             >
                 ×
             </button>
 
         </div>
 
-        <div class="command-grid">
+        <div class="modalBody">
 
-            <div
-                class="command-card"
-                onclick="runCommand('/help')"
+            <input
+                id="groupName"
+                placeholder="Group name"
+                maxlength="40"
             >
-                <b>/help</b>
-                <span>All commands</span>
-            </div>
 
-            <div
-                class="command-card"
-                onclick="runCommand('/fun')"
+            <button
+                class="modalPrimary"
+                onclick="createGroup()"
             >
-                <b>/fun</b>
-                <span>Random fun</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/dice')"
-            >
-                <b>/dice</b>
-                <span>Roll dice</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/coinflip')"
-            >
-                <b>/coinflip</b>
-                <span>Flip coin</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/8ball')"
-            >
-                <b>/8ball</b>
-                <span>Magic answer</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/joke')"
-            >
-                <b>/joke</b>
-                <span>Random joke</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/trivia')"
-            >
-                <b>/trivia</b>
-                <span>Trivia question</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/dance')"
-            >
-                <b>/dance</b>
-                <span>Dance mode</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/rainbow')"
-            >
-                <b>/rainbow</b>
-                <span>Rainbow mode</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/matrix')"
-            >
-                <b>/matrix</b>
-                <span>Matrix mode</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/party')"
-            >
-                <b>/party</b>
-                <span>Party mode</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/fireworks')"
-            >
-                <b>/fireworks</b>
-                <span>Fireworks</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/confetti')"
-            >
-                <b>/confetti</b>
-                <span>Confetti</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/online')"
-            >
-                <b>/online</b>
-                <span>Online users</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/rules')"
-            >
-                <b>/rules</b>
-                <span>Chat rules</span>
-            </div>
-
-            <div
-                class="command-card"
-                onclick="runCommand('/time')"
-            >
-                <b>/time</b>
-                <span>Server time</span>
-            </div>
+                CREATE GROUP
+            </button>
 
         </div>
 
@@ -1264,18 +815,18 @@ body{
 <!-- USERS MODAL -->
 
 <div
-    class="modal"
+    class="modalBack hidden"
     id="usersModal"
 >
 
-    <div class="modal-card">
+    <div class="modal">
 
-        <div class="modal-head">
+        <div class="modalHead">
 
-            <h2>👥 MEMBERS</h2>
+            <strong>Online Users</strong>
 
             <button
-                class="modal-close"
+                class="iconBtn"
                 onclick="closeModal('usersModal')"
             >
                 ×
@@ -1283,67 +834,119 @@ body{
 
         </div>
 
-        <div id="modalUsers"></div>
+        <div
+            class="modalBody"
+            id="usersModalBody"
+        ></div>
 
     </div>
 
 </div>
 
 
-<!-- SETTINGS -->
+<!-- COMMAND MODAL -->
 
 <div
-    class="modal"
-    id="settingsModal"
+    class="modalBack hidden"
+    id="commandsModal"
 >
 
-    <div class="modal-card">
+    <div class="modal">
 
-        <div class="modal-head">
+        <div class="modalHead">
 
-            <h2>⚙ MATIA CHAT SETTINGS</h2>
+            <strong>Command Center</strong>
 
             <button
-                class="modal-close"
-                onclick="closeModal('settingsModal')"
+                class="iconBtn"
+                onclick="closeModal('commandsModal')"
             >
                 ×
             </button>
 
         </div>
 
-        <div class="setting">
+        <div class="modalBody">
 
-            <div class="setting-title">
-                🚀 Realtime connection
-            </div>
+            <input
+                id="commandInput"
+                placeholder="/help"
+                autocomplete="off"
+            >
 
-            <div class="setting-desc">
-                Socket connection runs in background.
-            </div>
+            <button
+                class="modalPrimary"
+                onclick="runCommandFromModal()"
+            >
+                RUN COMMAND
+            </button>
 
-        </div>
+            <div class="commandGrid">
 
-        <div class="setting">
+                <button class="commandBtn" onclick="quickCommand('/help')">
+                    /help
+                </button>
 
-            <div class="setting-title">
-                💬 Instant chat
-            </div>
+                <button class="commandBtn" onclick="quickCommand('/time')">
+                    /time
+                </button>
 
-            <div class="setting-desc">
-                Chat UI opens immediately after CONNECT.
-            </div>
+                <button class="commandBtn" onclick="quickCommand('/flip')">
+                    /flip
+                </button>
 
-        </div>
+                <button class="commandBtn" onclick="quickCommand('/dice')">
+                    /dice
+                </button>
 
-        <div class="setting">
+                <button class="commandBtn" onclick="quickCommand('/roll')">
+                    /roll
+                </button>
 
-            <div class="setting-title">
-                🔐 Privacy
-            </div>
+                <button class="commandBtn" onclick="quickCommand('/8ball')">
+                    /8ball
+                </button>
 
-            <div class="setting-desc">
-                Never share passwords, API keys or private information.
+                <button class="commandBtn" onclick="quickCommand('/rate')">
+                    /rate
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/online')">
+                    /online
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/clear')">
+                    /clear
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/announce hello everyone')">
+                    /announce
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/mute username')">
+                    /mute
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/kick username')">
+                    /kick
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/ban username')">
+                    /ban
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/unban username')">
+                    /unban
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/promote username')">
+                    /promote
+                </button>
+
+                <button class="commandBtn" onclick="quickCommand('/demote username')">
+                    /demote
+                </button>
+
             </div>
 
         </div>
@@ -1352,1211 +955,84 @@ body{
 
 </div>
 
-
-<!-- ANNOUNCEMENT -->
-
-<div id="announcement">
-
-    <div class="announcement-title">
-        📢 MATIA ANNOUNCEMENT
-    </div>
-
-    <div id="announcementText"></div>
-
-</div>
-
-
-<!-- EFFECTS -->
 
 <div id="effectLayer"></div>
 
-<div id="toast"></div>
+<div
+    class="toast"
+    id="toast"
+></div>
 
 
 <script>
 
-/* ========================================================
+/* =========================================================
    STATE
-======================================================== */
+========================================================= */
 
 let USERNAME = "";
-let ROLE = "member";
-let connected = false;
-let socketConnected = false;
+let USER_ROLE = "user";
+let CURRENT_GROUP = "main";
 
-let knownMessages = new Set();
+let groups = [
+    {
+        id:"main",
+        name:"MATIA CHAT"
+    }
+];
 
-let lastMessageCount = 0;
-
-
-/* ========================================================
-   SOCKET
-======================================================== */
+let users = [];
+let messages = [];
 
 let socket = null;
 
-try {
 
-    socket = io({
-        transports: ["polling"],
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        timeout: 10000
-    });
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-    socket.on("connect", () => {
+const loginScreen =
+    document.getElementById("loginScreen");
 
-        socketConnected = true;
+const app =
+    document.getElementById("app");
 
-        console.log("MATIA CHAT socket connected");
+const usernameInput =
+    document.getElementById("username");
 
-        if (USERNAME) {
+const messageInput =
+    document.getElementById("messageInput");
 
-            socket.emit("login", {
-                username: USERNAME
-            });
+const messagesBox =
+    document.getElementById("messages");
 
-        }
+const groupList =
+    document.getElementById("groupList");
 
-    });
+const userList =
+    document.getElementById("userList");
 
+const groupTitle =
+    document.getElementById("groupTitle");
 
-    socket.on("disconnect", () => {
+const groupSub =
+    document.getElementById("groupSub");
 
-        socketConnected = false;
 
-        console.log("Socket disconnected");
+/* =========================================================
+   HELPERS
+========================================================= */
 
-    });
+function escapeHtml(value){
 
-
-    socket.on("server_ready", data => {
-
-        console.log("Server ready");
-
-    });
-
-
-    socket.on("login_success", data => {
-
-        if (!data) return;
-
-        USERNAME = data.username || USERNAME;
-        ROLE = data.role || "member";
-
-        updateProfile();
-
-        if (Array.isArray(data.messages)) {
-
-            renderMessages(data.messages);
-
-        }
-
-        if (Array.isArray(data.users)) {
-
-            renderUsers(data.users);
-
-        }
-
-        if (data.group) {
-
-            updateGroup(data.group);
-
-        }
-
-    });
-
-
-    socket.on("login_error", data => {
-
-        console.log("Socket login error", data);
-
-    });
-
-
-    socket.on("new_message", msg => {
-
-        addMessage(msg);
-
-    });
-
-
-    socket.on("users_update", data => {
-
-        if (data && Array.isArray(data.users)) {
-
-            renderUsers(data.users);
-
-        }
-
-    });
-
-
-    socket.on("group_update", group => {
-
-        updateGroup(group);
-
-    });
-
-
-    socket.on("clear_messages", () => {
-
-        document.getElementById("messages").innerHTML = "";
-
-        knownMessages.clear();
-
-    });
-
-
-    socket.on("visual_effect", data => {
-
-        if (data && data.effect) {
-
-            runEffect(data.effect);
-
-        }
-
-    });
-
-
-    socket.on("announcement", data => {
-
-        if (data) {
-
-            showAnnouncement(
-                data.text || "",
-                data.by || "MATIA"
-            );
-
-        }
-
-    });
-
-} catch(error) {
-
-    console.log("Socket initialization failed", error);
-
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 }
 
-
-/* ========================================================
-   CONNECT
-======================================================== */
-
-function connectUser(){
-
-    const input = document.getElementById("username");
-
-    let name = input.value.trim();
-
-    if (!name) {
-
-        name = "Guest" + Math.floor(Math.random() * 9999);
-
-    }
-
-    name = name.substring(0,24);
-
-    USERNAME = name;
-
-    /* OPEN IMMEDIATELY */
-
-    document.getElementById("loginScreen").style.display = "none";
-
-    document.getElementById("app").style.display = "block";
-
-    updateProfile();
-
-    showToast("🚀 Welcome to MATIA CHAT!");
-
-    connected = true;
-
-    /* HTTP LOGIN BACKGROUND */
-
-    fetch("/api/login", {
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-            username:USERNAME
-        })
-
-    })
-    .then(response => response.json())
-    .then(data => {
-
-        if (!data.ok) {
-
-            showToast("⚠ " + (data.error || "Login error"));
-
-            return;
-
-        }
-
-        ROLE = data.role || "member";
-
-        updateProfile();
-
-        if (Array.isArray(data.users)) {
-
-            renderUsers(data.users);
-
-        }
-
-    })
-    .catch(error => {
-
-        console.log("HTTP login error:",error);
-
-    });
-
-
-    /* SOCKET BACKGROUND */
-
-    if (socket) {
-
-        try {
-
-            if (socket.connected) {
-
-                socket.emit("login",{
-                    username:USERNAME
-                });
-
-            }
-
-        } catch(e){
-
-            console.log(e);
-
-        }
-
-    }
-
-    /* LOAD CHAT VIA HTTP */
-
-    loadMessages();
-
-    setTimeout(() => {
-
-        document.getElementById("messageInput").focus();
-
-    },100);
-
-}
-
-
-/* ========================================================
-   LOAD MESSAGES
-======================================================== */
-
-function loadMessages(){
-
-    fetch("/api/messages")
-    .then(r => r.json())
-    .then(data => {
-
-        if (!data) return;
-
-        if (Array.isArray(data.messages)) {
-
-            renderMessages(data.messages);
-
-        }
-
-        if (Array.isArray(data.users)) {
-
-            renderUsers(data.users);
-
-        }
-
-        if (data.group) {
-
-            updateGroup(data.group);
-
-        }
-
-    })
-    .catch(err => {
-
-        console.log("Message load error:",err);
-
-    });
-
-}
-
-
-/* ========================================================
-   POLLING FALLBACK
-======================================================== */
-
-setInterval(() => {
-
-    if (!connected) return;
-
-    if (socketConnected) return;
-
-    loadMessages();
-
-},1500);
-
-
-/* ========================================================
-   SEND
-======================================================== */
-
-function sendMessage(){
-
-    const input = document.getElementById("messageInput");
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    input.value = "";
-
-    input.style.height = "auto";
-
-    /* COMMAND */
-
-    if (text.startsWith("/")) {
-
-        runCommand(text);
-
-        return;
-
-    }
-
-    /* SOCKET */
-
-    if (socket && socket.connected) {
-
-        socket.emit("send_message",{
-
-            username:USERNAME,
-            text:text
-
-        });
-
-        return;
-
-    }
-
-    /* HTTP FALLBACK */
-
-    fetch("/api/messages",{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-
-            username:USERNAME,
-            text:text
-
-        })
-
-    })
-    .then(r => r.json())
-    .then(data => {
-
-        if (data.message) {
-
-            addMessage(data.message);
-
-        }
-
-        if (data.error) {
-
-            showToast("⚠ " + data.error);
-
-        }
-
-    })
-    .catch(() => {
-
-        showToast("⚠ Server unavailable");
-
-    });
-
-}
-
-
-/* ========================================================
-   COMMAND
-======================================================== */
-
-function runCommand(command){
-
-    closeModal("commandModal");
-
-    command = command.trim();
-
-    if (!command) return;
-
-    /* SOCKET FIRST */
-
-    if (socket && socket.connected) {
-
-        socket.emit("send_message",{
-
-            username:USERNAME,
-            text:command
-
-        });
-
-        return;
-
-    }
-
-    /* HTTP FALLBACK */
-
-    fetch("/api/command",{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-
-            username:USERNAME,
-            command:command
-
-        })
-
-    })
-    .then(r => r.json())
-    .then(data => {
-
-        if (data.message) {
-
-            addMessage(data.message);
-
-        }
-
-        if (data.effect) {
-
-            runEffect(data.effect);
-
-        }
-
-        if (data.error) {
-
-            showToast("⚠ " + data.error);
-
-        }
-
-    })
-    .catch(err => {
-
-        console.log(err);
-
-        showToast("⚠ Command server unavailable");
-
-    });
-
-}
-
-
-/* ========================================================
-   MESSAGE RENDER
-======================================================== */
-
-function renderMessages(messages){
-
-    const box = document.getElementById("messages");
-
-    box.innerHTML = "";
-
-    knownMessages.clear();
-
-    if (!messages.length) {
-
-        showEmpty();
-
-        return;
-
-    }
-
-    messages.forEach(msg => {
-
-        addMessage(msg,false);
-
-    });
-
-    scrollBottom();
-
-}
-
-
-function addMessage(msg,scroll=true){
-
-    if (!msg) return;
-
-    const id = String(msg.id || (
-        msg.username + msg.time + msg.text
-    ));
-
-    if (knownMessages.has(id)) return;
-
-    knownMessages.add(id);
-
-    const box = document.getElementById("messages");
-
-    const empty = document.getElementById("emptyState");
-
-    if (empty) {
-
-        empty.remove();
-
-    }
-
-    const wrapper = document.createElement("div");
-
-    const isMe =
-        msg.username === USERNAME &&
-        msg.kind !== "system";
-
-    wrapper.className =
-        "message " +
-        (isMe ? "me " : "") +
-        (msg.kind || "");
-
-    const bubble = document.createElement("div");
-
-    bubble.className = "bubble";
-
-    if (!isMe && msg.kind !== "system") {
-
-        const name = document.createElement("div");
-
-        name.className = "message-name";
-
-        name.textContent = msg.username || "Unknown";
-
-        bubble.appendChild(name);
-
-    }
-
-    const text = document.createElement("div");
-
-    text.className = "message-text";
-
-    text.textContent = msg.text || "";
-
-    bubble.appendChild(text);
-
-    if (msg.time) {
-
-        const time = document.createElement("div");
-
-        time.className = "message-time";
-
-        time.textContent = msg.time;
-
-        bubble.appendChild(time);
-
-    }
-
-    wrapper.appendChild(bubble);
-
-    box.appendChild(wrapper);
-
-    if (scroll) {
-
-        scrollBottom();
-
-    }
-
-}
-
-
-function showEmpty(){
-
-    const box = document.getElementById("messages");
-
-    box.innerHTML = `
-
-        <div class="empty" id="emptyState">
-
-            <div>
-
-                <div class="empty-icon">💬</div>
-
-                <h2>Welcome to MATIA CHAT</h2>
-
-                <p style="margin-top:7px">
-                    Send a message or try <b>/help</b>
-                </p>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-function scrollBottom(){
-
-    const box = document.getElementById("messages");
-
-    box.scrollTop = box.scrollHeight;
-
-}
-
-
-/* ========================================================
-   USERS
-======================================================== */
-
-let cachedUsers = [];
-
-function renderUsers(users){
-
-    cachedUsers = users || [];
-
-    const list = document.getElementById("userList");
-
-    list.innerHTML = "";
-
-    users.forEach(user => {
-
-        const item = document.createElement("div");
-
-        item.className = "user-item";
-
-        const dot = document.createElement("div");
-
-        dot.className =
-            "status-dot " +
-            (user.online ? "online" : "");
-
-        const info = document.createElement("div");
-
-        info.style.minWidth = "0";
-
-        const name = document.createElement("div");
-
-        name.className = "user-item-name";
-
-        name.textContent = user.username;
-
-        const role = document.createElement("div");
-
-        role.className = "user-item-role";
-
-        role.textContent =
-            (user.role || "member").toUpperCase();
-
-        info.appendChild(name);
-
-        info.appendChild(role);
-
-        item.appendChild(dot);
-
-        item.appendChild(info);
-
-        list.appendChild(item);
-
-    });
-
-    renderModalUsers(users);
-
-}
-
-
-function renderModalUsers(users){
-
-    const box = document.getElementById("modalUsers");
-
-    box.innerHTML = "";
-
-    users.forEach(user => {
-
-        const row = document.createElement("div");
-
-        row.className = "setting";
-
-        row.innerHTML = `
-
-            <div style="
-                display:flex;
-                align-items:center;
-                gap:10px;
-            ">
-
-                <span>
-                    ${user.online ? "🟢" : "⚫"}
-                </span>
-
-                <div style="flex:1">
-
-                    <div style="font-weight:800">
-                        ${escapeHtml(user.username)}
-                    </div>
-
-                    <div style="
-                        font-size:11px;
-                        color:#71897e;
-                        margin-top:3px;
-                    ">
-                        ${escapeHtml(
-                            (user.role || "member").toUpperCase()
-                        )}
-                    </div>
-
-                </div>
-
-            </div>
-
-        `;
-
-        box.appendChild(row);
-
-    });
-
-}
-
-
-/* ========================================================
-   SEARCH
-======================================================== */
-
-function searchUsers(){
-
-    const query =
-        document.getElementById("searchInput")
-        .value
-        .toLowerCase()
-        .trim();
-
-    const filtered = cachedUsers.filter(user =>
-        user.username
-            .toLowerCase()
-            .includes(query)
-    );
-
-    renderUsers(filtered);
-
-}
-
-
-/* ========================================================
-   PROFILE
-======================================================== */
-
-function updateProfile(){
-
-    const name =
-        document.getElementById("myName");
-
-    const avatar =
-        document.getElementById("myAvatar");
-
-    const role =
-        document.getElementById("myRole");
-
-    if (name) {
-
-        name.textContent = USERNAME;
-
-    }
-
-    if (avatar) {
-
-        avatar.textContent =
-            USERNAME.charAt(0).toUpperCase();
-
-    }
-
-    if (role) {
-
-        role.textContent =
-            ROLE.toUpperCase();
-
-    }
-
-}
-
-
-/* ========================================================
-   GROUP
-======================================================== */
-
-function updateGroup(group){
-
-    if (!group) return;
-
-    const name =
-        document.getElementById("groupName");
-
-    const status =
-        document.getElementById("groupStatus");
-
-    if (name) {
-
-        name.textContent =
-            group.name || "MATIA CHAT";
-
-    }
-
-    if (status) {
-
-        status.textContent =
-            group.locked
-            ? "🔒 Chat locked"
-            : "🟢 Community online";
-
-    }
-
-}
-
-
-/* ========================================================
-   EFFECTS
-======================================================== */
-
-function runEffect(effect){
-
-    if (!effect) return;
-
-    if (effect === "rainbow") {
-
-        document.body.classList.add("rainbow");
-
-        setTimeout(() => {
-
-            document.body.classList.remove("rainbow");
-
-        },6000);
-
-    }
-
-
-    if (effect === "matrix") {
-
-        matrixEffect();
-
-    }
-
-
-    if (effect === "confetti") {
-
-        confettiEffect();
-
-    }
-
-
-    if (effect === "fireworks") {
-
-        fireworksEffect();
-
-    }
-
-
-    if (effect === "party") {
-
-        partyEffect();
-
-    }
-
-
-    if (effect === "disco") {
-
-        partyEffect();
-
-    }
-
-
-    if (effect === "neon") {
-
-        document.body.style.filter =
-            "drop-shadow(0 0 8px rgba(32,232,138,.5))";
-
-        setTimeout(() => {
-
-            document.body.style.filter = "";
-
-        },5000);
-
-    }
-
-
-    if (effect === "fire") {
-
-        fireEffect();
-
-    }
-
-}
-
-
-function matrixEffect(){
-
-    const layer =
-        document.getElementById("effectLayer");
-
-    const chars =
-        "01MATIACHAT<>[]{}#$%";
-
-    for(let i=0;i<100;i++){
-
-        const el =
-            document.createElement("div");
-
-        el.className = "matrix-char";
-
-        el.textContent =
-            chars[Math.floor(Math.random()*chars.length)];
-
-        el.style.left =
-            Math.random()*100 + "%";
-
-        el.style.animationDuration =
-            (1 + Math.random()*3) + "s";
-
-        layer.appendChild(el);
-
-        setTimeout(() => {
-
-            el.remove();
-
-        },4500);
-
-    }
-
-}
-
-
-function confettiEffect(){
-
-    const layer =
-        document.getElementById("effectLayer");
-
-    for(let i=0;i<130;i++){
-
-        const el =
-            document.createElement("div");
-
-        el.className = "confetti";
-
-        el.style.left =
-            Math.random()*100 + "%";
-
-        el.style.animationDelay =
-            Math.random()*1.2 + "s";
-
-        el.style.transform =
-            `rotate(${Math.random()*360}deg)`;
-
-        el.style.background =
-            `hsl(${Math.random()*360},90%,60%)`;
-
-        layer.appendChild(el);
-
-        setTimeout(() => {
-
-            el.remove();
-
-        },4000);
-
-    }
-
-}
-
-
-function fireworksEffect(){
-
-    const layer =
-        document.getElementById("effectLayer");
-
-    for(let i=0;i<8;i++){
-
-        setTimeout(() => {
-
-            const el =
-                document.createElement("div");
-
-            el.className = "firework";
-
-            el.style.left =
-                (20+Math.random()*60)+"%";
-
-            el.style.top =
-                (20+Math.random()*45)+"%";
-
-            layer.appendChild(el);
-
-            setTimeout(() => {
-
-                el.remove();
-
-            },1300);
-
-        },i*300);
-
-    }
-
-}
-
-
-function partyEffect(){
-
-    confettiEffect();
-
-    setTimeout(matrixEffect,500);
-
-}
-
-
-function fireEffect(){
-
-    const layer =
-        document.getElementById("effectLayer");
-
-    for(let i=0;i<50;i++){
-
-        const el =
-            document.createElement("div");
-
-        el.className = "matrix-char";
-
-        el.textContent =
-            ["🔥","🔥","✨","🔥"][Math.floor(Math.random()*4)];
-
-        el.style.left =
-            Math.random()*100+"%";
-
-        el.style.top =
-            (60+Math.random()*40)+"%";
-
-        el.style.animationDuration =
-            (1+Math.random()*2)+"s";
-
-        layer.appendChild(el);
-
-        setTimeout(() => {
-
-            el.remove();
-
-        },3500);
-
-    }
-
-}
-
-
-/* ========================================================
-   ANNOUNCEMENT
-======================================================== */
-
-function showAnnouncement(text,by){
-
-    const box =
-        document.getElementById("announcement");
-
-    const content =
-        document.getElementById("announcementText");
-
-    content.textContent =
-        `${text} — ${by}`;
-
-    box.classList.add("show");
-
-    setTimeout(() => {
-
-        box.classList.remove("show");
-
-    },5000);
-
-}
-
-
-/* ========================================================
-   MODALS
-======================================================== */
-
-function openCommands(){
-
-    document
-        .getElementById("commandModal")
-        .classList.add("show");
-
-}
-
-
-function openUsers(){
-
-    document
-        .getElementById("usersModal")
-        .classList.add("show");
-
-}
-
-
-function openSettings(){
-
-    document
-        .getElementById("settingsModal")
-        .classList.add("show");
-
-}
-
-
-function closeModal(id){
-
-    document
-        .getElementById(id)
-        .classList.remove("show");
-
-}
-
-
-document.querySelectorAll(".modal").forEach(modal => {
-
-    modal.addEventListener("click",e => {
-
-        if(e.target === modal){
-
-            modal.classList.remove("show");
-
-        }
-
-    });
-
-});
-
-
-/* ========================================================
-   SIDEBAR MOBILE
-======================================================== */
-
-function toggleSidebar(){
-
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
-
-}
-
-
-/* ========================================================
-   TOAST
-======================================================== */
-
-let toastTimer;
 
 function showToast(text){
 
@@ -2564,28 +1040,631 @@ function showToast(text){
         document.getElementById("toast");
 
     toast.textContent = text;
-
     toast.classList.add("show");
 
-    clearTimeout(toastTimer);
-
-    toastTimer = setTimeout(() => {
-
+    setTimeout(()=>{
         toast.classList.remove("show");
+    },2200);
+}
 
-    },2600);
+
+function closeModal(id){
+
+    document
+        .getElementById(id)
+        .classList.add("hidden");
 
 }
 
 
-/* ========================================================
-   KEYBOARD
-======================================================== */
+function openModal(id){
 
-const input =
-    document.getElementById("messageInput");
+    document
+        .getElementById(id)
+        .classList.remove("hidden");
 
-input.addEventListener("keydown",e => {
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+document
+    .getElementById("connectBtn")
+    .addEventListener("click",connectUser);
+
+
+usernameInput.addEventListener("keydown",e=>{
+
+    if(e.key === "Enter"){
+        connectUser();
+    }
+
+});
+
+
+function connectUser(){
+
+    const name =
+        usernameInput.value.trim();
+
+    if(!name){
+
+        showToast("Enter a username.");
+
+        usernameInput.focus();
+
+        return;
+    }
+
+    USERNAME = name;
+
+    /*
+       OPEN THE CHAT IMMEDIATELY.
+    */
+
+    loginScreen.classList.add("hidden");
+    app.classList.remove("hidden");
+
+    document.getElementById("headerAvatar")
+        .textContent =
+        USERNAME.charAt(0).toUpperCase();
+
+    groupSub.textContent =
+        "Loading chat...";
+
+    localLogin();
+
+    connectSocket();
+
+    loadGroups();
+
+    loadMessages();
+
+    messageInput.focus();
+
+}
+
+
+/* =========================================================
+   HTTP LOGIN
+========================================================= */
+
+async function localLogin(){
+
+    try{
+
+        const response =
+            await fetch("/api/login",{
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+                body:JSON.stringify({
+                    username:USERNAME
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            showToast(
+                data.error ||
+                "Login failed."
+            );
+
+            return;
+        }
+
+        USER_ROLE =
+            data.role ||
+            "user";
+
+        groupSub.textContent =
+            `${USER_ROLE.toUpperCase()} • online`;
+
+        loadUsers();
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Connected locally. Server login unavailable."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SOCKET
+========================================================= */
+
+function connectSocket(){
+
+    try{
+
+        if(typeof io === "undefined"){
+
+            groupSub.textContent =
+                `${USER_ROLE.toUpperCase()} • HTTP mode`;
+
+            return;
+        }
+
+        socket =
+            io({
+                transports:["polling"],
+                reconnection:true,
+                reconnectionAttempts:20,
+                timeout:10000
+            });
+
+
+        socket.on("connect",()=>{
+
+            groupSub.textContent =
+                `${USER_ROLE.toUpperCase()} • online`;
+
+            socket.emit("login",{
+                username:USERNAME
+            });
+
+        });
+
+
+        socket.on("login_success",data=>{
+
+            USER_ROLE =
+                data.role || "user";
+
+            groupSub.textContent =
+                `${USER_ROLE.toUpperCase()} • online`;
+
+        });
+
+
+        socket.on("login_error",data=>{
+
+            showToast(data.error || "Login error.");
+
+        });
+
+
+        socket.on("new_message",message=>{
+
+            if(!messages.some(
+                m => m.id === message.id
+            )){
+
+                messages.push(message);
+
+                renderMessages();
+
+            }
+
+        });
+
+
+        socket.on("users",data=>{
+
+            users = data || [];
+
+            renderUsers();
+
+        });
+
+
+        socket.on("groups",data=>{
+
+            groups = data || groups;
+
+            renderGroups();
+
+        });
+
+
+        socket.on("announcement",data=>{
+
+            showToast(
+                "📢 " +
+                (data.text || "Announcement")
+            );
+
+            document.body.classList.add("flash");
+
+            setTimeout(()=>{
+                document.body.classList.remove("flash");
+            },500);
+
+        });
+
+
+        socket.on("clear_group",data=>{
+
+            if(data.group === CURRENT_GROUP){
+
+                messages = messages.filter(
+                    m => m.group !== CURRENT_GROUP
+                );
+
+                renderMessages();
+
+            }
+
+        });
+
+
+        socket.on("force_logout",data=>{
+
+            if(
+                data.username &&
+                data.username.toLowerCase() === USERNAME.toLowerCase()
+            ){
+
+                showToast("You have been removed.");
+
+                setTimeout(()=>{
+                    location.reload();
+                },1000);
+
+            }
+
+        });
+
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+
+/* =========================================================
+   GROUPS
+========================================================= */
+
+async function loadGroups(){
+
+    try{
+
+        const response =
+            await fetch("/api/groups");
+
+        if(response.ok){
+
+            groups =
+                await response.json();
+
+            renderGroups();
+
+        }
+
+    }catch(error){
+
+        renderGroups();
+
+    }
+
+}
+
+
+function renderGroups(){
+
+    groupList.innerHTML = "";
+
+    groups.forEach(group=>{
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "groupItem" +
+            (
+                group.id === CURRENT_GROUP
+                ? " active"
+                : ""
+            );
+
+        item.innerHTML = `
+            <div class="avatar">
+                ${escapeHtml(
+                    group.name.charAt(0).toUpperCase()
+                )}
+            </div>
+
+            <div class="userMeta">
+                <div class="userName">
+                    ${escapeHtml(group.name)}
+                </div>
+
+                <div class="userRole">
+                    Group
+                </div>
+            </div>
+        `;
+
+        item.onclick = ()=>{
+
+            CURRENT_GROUP =
+                group.id;
+
+            groupTitle.textContent =
+                group.name;
+
+            renderGroups();
+
+            loadMessages();
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("open");
+
+        };
+
+        groupList.appendChild(item);
+
+    });
+
+}
+
+
+function openGroupModal(){
+
+    if(
+        USER_ROLE !== "owner" &&
+        USER_ROLE !== "mod"
+    ){
+
+        showToast(
+            "Only Owner/Mod can create groups."
+        );
+
+        return;
+    }
+
+    openModal("groupModal");
+
+    setTimeout(()=>{
+        document
+            .getElementById("groupName")
+            .focus();
+    },50);
+
+}
+
+
+async function createGroup(){
+
+    const input =
+        document.getElementById("groupName");
+
+    const name =
+        input.value.trim();
+
+    if(!name){
+
+        showToast("Enter a group name.");
+
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch("/api/group",{
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+                body:JSON.stringify({
+                    username:USERNAME,
+                    name:name
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            showToast(
+                data.error ||
+                "Could not create group."
+            );
+
+            return;
+        }
+
+        groups.push({
+            id:data.id,
+            name:data.name
+        });
+
+        CURRENT_GROUP =
+            data.id;
+
+        groupTitle.textContent =
+            data.name;
+
+        renderGroups();
+
+        closeModal("groupModal");
+
+        input.value = "";
+
+        loadMessages();
+
+        showToast(
+            "✅ Group created!"
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Server error."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+async function loadMessages(){
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/messages?group=${encodeURIComponent(CURRENT_GROUP)}`
+            );
+
+        if(!response.ok){
+
+            return;
+        }
+
+        messages =
+            await response.json();
+
+        renderMessages();
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+
+function renderMessages(){
+
+    if(!messages.length){
+
+        messagesBox.innerHTML = `
+            <div class="empty">
+                <div>
+                    <h2>Welcome 👋</h2>
+                    <p>No messages yet.</p>
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const filtered =
+        messages.filter(
+            message =>
+                message.group === CURRENT_GROUP
+        );
+
+
+    if(!filtered.length){
+
+        messagesBox.innerHTML = `
+            <div class="empty">
+                <div>
+                    <h2>Welcome 👋</h2>
+                    <p>Be the first to send a message.</p>
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    messagesBox.innerHTML =
+        filtered.map(message=>{
+
+            const mine =
+                message.username === USERNAME;
+
+            const roleClass =
+                message.role === "owner"
+                    ? "roleOwner"
+                    : message.role === "mod"
+                        ? "roleMod"
+                        : "";
+
+
+            return `
+                <div class="messageRow ${mine ? "mine" : ""}">
+
+                    <div class="messageBubble">
+
+                        ${
+                            !mine
+                            ? `
+                                <div class="messageUser ${roleClass}">
+                                    ${escapeHtml(message.username)}
+                                    ${
+                                        message.role === "owner"
+                                        ? " 👑"
+                                        : message.role === "mod"
+                                        ? " 🛡️"
+                                        : ""
+                                    }
+                                </div>
+                            `
+                            : ""
+                        }
+
+                        <div class="messageText">
+                            ${escapeHtml(message.text)}
+                        </div>
+
+                        <div class="messageTime">
+                            ${escapeHtml(message.time || "")}
+                        </div>
+
+                        ${
+                            message.kind === "command"
+                            ? `
+                                <div class="messageKind">
+                                    command
+                                </div>
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+
+    messagesBox.scrollTop =
+        messagesBox.scrollHeight;
+
+}
+
+
+/* =========================================================
+   SEND MESSAGE
+========================================================= */
+
+messageInput.addEventListener("keydown",e=>{
 
     if(e.key === "Enter" && !e.shiftKey){
 
@@ -2598,45 +1677,704 @@ input.addEventListener("keydown",e => {
 });
 
 
-input.addEventListener("input",function(){
+async function sendMessage(){
 
-    this.style.height = "auto";
+    const text =
+        messageInput.value.trim();
 
-    this.style.height =
-        Math.min(this.scrollHeight,140) + "px";
+    if(!text){
 
-});
+        return;
+    }
 
 
-document
-    .getElementById("username")
-    .addEventListener("keydown",e => {
+    messageInput.value = "";
 
-        if(e.key === "Enter"){
 
-            e.preventDefault();
+    /* COMMAND */
 
-            connectUser();
+    if(text.startsWith("/")){
+
+        await runCommand(text);
+
+        return;
+    }
+
+
+    /* MUTED USER */
+
+    if(
+        USER_ROLE !== "owner" &&
+        window.__MUTED__
+    ){
+
+        showToast("You are muted.");
+
+        return;
+    }
+
+
+    /* SOCKET */
+
+    if(socket && socket.connected){
+
+        socket.emit(
+            "send_message",
+            {
+                username:USERNAME,
+                text:text,
+                group:CURRENT_GROUP
+            }
+        );
+
+        return;
+    }
+
+
+    /* HTTP FALLBACK */
+
+    try{
+
+        const response =
+            await fetch("/api/messages",{
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+                body:JSON.stringify({
+                    username:USERNAME,
+                    text:text,
+                    group:CURRENT_GROUP
+                })
+            });
+
+
+        if(response.ok){
+
+            await loadMessages();
+
+        }else{
+
+            showToast(
+                "Message failed."
+            );
 
         }
 
-    });
+    }catch(error){
 
+        console.error(error);
 
-/* ========================================================
-   ESCAPE HTML
-======================================================== */
+        showToast(
+            "Server connection failed."
+        );
 
-function escapeHtml(text){
-
-    return String(text)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    }
 
 }
+
+
+/* =========================================================
+   COMMANDS
+========================================================= */
+
+function openCommands(){
+
+    openModal("commandsModal");
+
+    setTimeout(()=>{
+        document
+            .getElementById("commandInput")
+            .focus();
+    },50);
+
+}
+
+
+function runCommandFromModal(){
+
+    const input =
+        document.getElementById("commandInput");
+
+    const command =
+        input.value.trim();
+
+    if(!command){
+
+        return;
+    }
+
+    closeModal("commandsModal");
+
+    input.value = "";
+
+    runCommand(command);
+
+}
+
+
+function quickCommand(command){
+
+    closeModal("commandsModal");
+
+    runCommand(command);
+
+}
+
+
+async function runCommand(command){
+
+    if(!command.startsWith("/")){
+
+        command =
+            "/" + command;
+
+    }
+
+    try{
+
+        const response =
+            await fetch("/api/command",{
+                method:"POST",
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+                body:JSON.stringify({
+                    username:USERNAME,
+                    command:command,
+                    group:CURRENT_GROUP
+                })
+            });
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showToast(
+                data.error ||
+                "Command failed."
+            );
+
+            return;
+        }
+
+
+        /*
+           Server emits command result
+           through Socket.IO.
+
+           For HTTP-only mode we render it here.
+        */
+
+        if(!socket || !socket.connected){
+
+            if(data.message){
+
+                const fakeMessage = {
+                    id:Date.now(),
+                    username:USERNAME,
+                    text:data.message,
+                    group:CURRENT_GROUP,
+                    time:new Date().toLocaleTimeString(
+                        [],
+                        {
+                            hour:"2-digit",
+                            minute:"2-digit"
+                        }
+                    ),
+                    kind:"command",
+                    role:USER_ROLE
+                };
+
+                messages.push(fakeMessage);
+
+                renderMessages();
+
+            }
+
+        }
+
+
+        runVisualEffect(command);
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Command server error."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   VISUAL EFFECTS
+========================================================= */
+
+function runVisualEffect(command){
+
+    const cmd =
+        command.split(" ")[0].toLowerCase();
+
+    if(cmd === "/party" || cmd === "/disco"){
+
+        document.body.classList.add("flash");
+
+        setTimeout(()=>{
+            document.body.classList.remove("flash");
+        },500);
+
+    }
+
+
+    if(cmd === "/shake"){
+
+        document.body.classList.add("shake");
+
+        setTimeout(()=>{
+            document.body.classList.remove("shake");
+        },400);
+
+    }
+
+
+    if(cmd === "/matrix"){
+
+        for(let i=0;i<20;i++){
+
+            const el =
+                document.createElement("div");
+
+            el.textContent =
+                Math.random()
+                .toString(36)
+                .slice(2,12);
+
+            el.style.position = "fixed";
+            el.style.left =
+                Math.random()*100 + "%";
+            el.style.top = "-30px";
+            el.style.color = "#00ff9c";
+            el.style.fontWeight = "900";
+            el.style.zIndex = "400";
+            el.style.pointerEvents = "none";
+
+            document.body.appendChild(el);
+
+            const animation =
+                el.animate(
+                    [
+                        {transform:"translateY(0)"},
+                        {transform:"translateY(110vh)"}
+                    ],
+                    {
+                        duration:
+                            1500 +
+                            Math.random()*1800,
+                        easing:"linear"
+                    }
+                );
+
+            animation.onfinish =
+                ()=>el.remove();
+
+        }
+
+    }
+
+
+    if(
+        cmd === "/fireworks" ||
+        cmd === "/confetti"
+    ){
+
+        for(let i=0;i<45;i++){
+
+            const el =
+                document.createElement("div");
+
+            el.textContent = "✦";
+
+            el.style.position = "fixed";
+            el.style.left = "50%";
+            el.style.top = "50%";
+            el.style.zIndex = "400";
+            el.style.pointerEvents = "none";
+            el.style.fontSize = "20px";
+
+            document.body.appendChild(el);
+
+            const x =
+                (Math.random()-.5)*900;
+
+            const y =
+                (Math.random()-.5)*700;
+
+            const animation =
+                el.animate(
+                    [
+                        {
+                            transform:"translate(-50%,-50%) scale(1)"
+                        },
+                        {
+                            transform:
+                                `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(.2)`,
+                            opacity:0
+                        }
+                    ],
+                    {
+                        duration:
+                            900 +
+                            Math.random()*900,
+                        easing:"cubic-bezier(.2,.8,.2,1)"
+                    }
+                );
+
+            animation.onfinish =
+                ()=>el.remove();
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   USERS
+========================================================= */
+
+async function loadUsers(){
+
+    try{
+
+        const response =
+            await fetch("/api/users");
+
+        if(response.ok){
+
+            users =
+                await response.json();
+
+            renderUsers();
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+
+function renderUsers(){
+
+    userList.innerHTML = "";
+
+    users.forEach(user=>{
+
+        const item =
+            document.createElement("div");
+
+        item.className = "userItem";
+
+        const roleClass =
+            user.role === "owner"
+                ? "roleOwner"
+                : user.role === "mod"
+                    ? "roleMod"
+                    : "";
+
+
+        item.innerHTML = `
+
+            <div class="avatar">
+
+                ${escapeHtml(
+                    user.username
+                        .charAt(0)
+                        .toUpperCase()
+                )}
+
+            </div>
+
+            <div class="userMeta">
+
+                <div class="userName ${roleClass}">
+
+                    ${escapeHtml(user.username)}
+
+                    ${
+                        user.role === "owner"
+                        ? " 👑"
+                        : user.role === "mod"
+                        ? " 🛡️"
+                        : ""
+                    }
+
+                </div>
+
+                <div class="userRole">
+
+                    ${escapeHtml(
+                        user.role || "user"
+                    )}
+
+                </div>
+
+            </div>
+
+            <div class="statusDot"></div>
+
+        `;
+
+
+        userList.appendChild(item);
+
+    });
+
+}
+
+
+function openUsersModal(){
+
+    const body =
+        document.getElementById("usersModalBody");
+
+    body.innerHTML =
+        users.map(user=>{
+
+            return `
+
+                <div class="userItem">
+
+                    <div class="avatar">
+                        ${escapeHtml(
+                            user.username
+                                .charAt(0)
+                                .toUpperCase()
+                        )}
+                    </div>
+
+                    <div class="userMeta">
+
+                        <div class="userName">
+
+                            ${escapeHtml(user.username)}
+
+                        </div>
+
+                        <div class="userRole">
+
+                            ${escapeHtml(user.role)}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("") ||
+        "<p>No users online.</p>";
+
+    openModal("usersModal");
+
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function searchEverything(){
+
+    const search =
+        document
+            .getElementById("searchInput")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    if(!search){
+
+        renderGroups();
+
+        renderUsers();
+
+        return;
+    }
+
+
+    const filteredGroups =
+        groups.filter(
+            group =>
+                group.name
+                    .toLowerCase()
+                    .includes(search)
+        );
+
+
+    groupList.innerHTML =
+        filteredGroups.map(group=>{
+
+            return `
+
+                <div
+                    class="groupItem"
+                    onclick="selectGroup('${escapeHtml(group.id)}')"
+                >
+
+                    <div class="avatar">
+                        ${escapeHtml(
+                            group.name
+                                .charAt(0)
+                                .toUpperCase()
+                        )}
+                    </div>
+
+                    <div class="userMeta">
+
+                        <div class="userName">
+
+                            ${escapeHtml(group.name)}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+
+    const filteredUsers =
+        users.filter(
+            user =>
+                user.username
+                    .toLowerCase()
+                    .includes(search)
+        );
+
+
+    userList.innerHTML =
+        filteredUsers.map(user=>{
+
+            return `
+
+                <div class="userItem">
+
+                    <div class="avatar">
+                        ${escapeHtml(
+                            user.username
+                                .charAt(0)
+                                .toUpperCase()
+                        )}
+                    </div>
+
+                    <div class="userMeta">
+
+                        <div class="userName">
+
+                            ${escapeHtml(user.username)}
+
+                        </div>
+
+                        <div class="userRole">
+
+                            ${escapeHtml(
+                                user.role
+                            )}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+function selectGroup(id){
+
+    const group =
+        groups.find(
+            g => g.id === id
+        );
+
+    if(!group){
+
+        return;
+    }
+
+    CURRENT_GROUP = id;
+
+    groupTitle.textContent =
+        group.name;
+
+    renderGroups();
+
+    loadMessages();
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+function toggleSidebar(){
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+/* =========================================================
+   AUTO REFRESH FALLBACK
+========================================================= */
+
+setInterval(()=>{
+
+    if(
+        USERNAME &&
+        (!socket || !socket.connected)
+    ){
+
+        loadMessages();
+
+        loadUsers();
+
+    }
+
+},2500);
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+renderGroups();
 
 </script>
 
