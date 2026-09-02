@@ -1,14 +1,41 @@
 import os
+import secrets
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_socketio import SocketIO, emit
 
+# =========================================================
+# CONFIG
+# =========================================================
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "matia-chat-secret")
+OWNER_USERNAME = "Matia"
+
+# Set this in Render:
+# OWNER_PIN = your_private_pin
+OWNER_PIN = os.environ.get("OWNER_PIN", "847291")
+
+MAX_MESSAGES = 500
+MAX_USERNAME_LENGTH = 24
+MAX_MESSAGE_LENGTH = 2000
+
+# =========================================================
+# FLASK
+# =========================================================
+
+app = Flask(
+    __name__,
+    static_folder=BASE_DIR,
+    static_url_path=""
+)
+
+app.config["SECRET_KEY"] = os.environ.get(
+    "SECRET_KEY",
+    "matia-chat-secret"
+)
 
 socketio = SocketIO(
     app,
@@ -16,12 +43,29 @@ socketio = SocketIO(
     async_mode="threading"
 )
 
+# =========================================================
+# STATE
+# =========================================================
+
 USERS = {}
+# username -> {
+#   role,
+#   joined,
+#   socket_id
+# }
+
+TOKENS = {}
+# token -> username
+
+SOCKET_USERS = {}
+# socket id -> username
+
 MESSAGES = []
+
 GROUPS = {
     "main": {
         "name": "MATIA CHAT",
-        "owner": None
+        "owner": OWNER_USERNAME
     }
 }
 
@@ -29,12 +73,14 @@ BANNED = set()
 MUTED = set()
 LOCKED_GROUPS = set()
 
-MAX_MESSAGES = 500
-
 
 # =========================================================
 # HELPERS
 # =========================================================
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
 
 def current_time():
     return datetime.now().strftime("%H:%M")
@@ -42,61 +88,106 @@ def current_time():
 
 def clean_username(value):
     value = str(value or "").strip()
-    value = value[:24]
+    value = value[:MAX_USERNAME_LENGTH]
 
-    allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_- "
-    value = "".join(char for char in value if char in allowed)
+    allowed = (
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789_- "
+    )
+
+    value = "".join(
+        c for c in value
+        if c in allowed
+    )
 
     return value.strip()
 
 
-def clean_text(value):
-    return str(value or "").strip()[:2000]
-
-
 def username_exists(username):
-    username_lower = username.lower()
+    username = clean_username(username).lower()
 
     return any(
-        existing.lower() == username_lower
+        existing.lower() == username
         for existing in USERS
     )
 
 
-def get_existing_username(username):
-    username_lower = username.lower()
+def existing_username(username):
+    username = clean_username(username).lower()
 
     for existing in USERS:
-        if existing.lower() == username_lower:
+        if existing.lower() == username:
             return existing
 
     return None
 
 
 def get_role(username):
-    existing = get_existing_username(username)
+    user = existing_username(username)
 
-    if existing is None:
+    if user is None:
         return "user"
 
-    return USERS[existing]["role"]
+    return USERS[user].get(
+        "role",
+        "user"
+    )
 
 
 def is_owner(username):
-    return get_role(username) == "owner"
+    return (
+        clean_username(username).lower()
+        == OWNER_USERNAME.lower()
+    )
 
 
 def is_mod(username):
-    return get_role(username) in ("owner", "mod")
+    return get_role(username) in (
+        "owner",
+        "mod"
+    )
 
 
-def add_message(username, text, group="main", kind="user"):
+def make_token(username):
+    token = secrets.token_urlsafe(32)
+    TOKENS[token] = username
+    return token
+
+
+def verify_token(token, username):
+    if not token:
+        return None
+
+    token_user = TOKENS.get(token)
+
+    if not token_user:
+        return None
+
+    if token_user.lower() != username.lower():
+        return None
+
+    user = existing_username(token_user)
+
+    if user is None:
+        return None
+
+    return user
+
+
+def add_message(
+    username,
+    text,
+    group="main",
+    kind="user"
+):
     message = {
-        "id": len(MESSAGES) + 1,
+        "id": secrets.token_hex(8),
         "username": username,
         "text": text,
         "group": group,
         "time": current_time(),
+        "timestamp": now_iso(),
         "kind": kind,
         "role": get_role(username)
     }
@@ -109,65 +200,88 @@ def add_message(username, text, group="main", kind="user"):
     return message
 
 
-def broadcast_users():
-    payload = []
-
-    for username, info in USERS.items():
-        payload.append({
-            "username": username,
-            "role": info["role"],
-            "online": True
-        })
-
-    socketio.emit("users", payload)
-
-
-def broadcast_groups():
-    payload = []
-
-    for group_id, group in GROUPS.items():
-        payload.append({
-            "id": group_id,
-            "name": group["name"]
-        })
-
-    socketio.emit("groups", payload)
-
-
-def send_system_message(text, group="main"):
-    message = add_message(
-        "MATIA BOT",
-        text,
-        group,
-        "system"
+def send_users():
+    socketio.emit(
+        "users",
+        [
+            {
+                "username": username,
+                "role": data.get(
+                    "role",
+                    "user"
+                ),
+                "online": True
+            }
+            for username, data in USERS.items()
+        ]
     )
 
-    socketio.emit("new_message", message)
 
-
-def command_result(username, text, group):
-    message = add_message(
-        username,
-        text,
-        group,
-        "command"
+def send_groups():
+    socketio.emit(
+        "groups",
+        [
+            {
+                "id": group_id,
+                "name": group["name"]
+            }
+            for group_id, group in GROUPS.items()
+        ]
     )
 
-    socketio.emit("new_message", message)
+
+def broadcast_message(message):
+    socketio.emit(
+        "new_message",
+        message
+    )
+
+
+def remove_user(username):
+    user = existing_username(username)
+
+    if user is None:
+        return
+
+    socket_id = USERS[user].get(
+        "socket_id"
+    )
+
+    USERS.pop(user, None)
+
+    # remove token(s)
+    for token, token_user in list(
+        TOKENS.items()
+    ):
+        if token_user.lower() == user.lower():
+            TOKENS.pop(token, None)
+
+    # remove socket mapping
+    if socket_id:
+        SOCKET_USERS.pop(
+            socket_id,
+            None
+        )
 
 
 # =========================================================
-# ROUTES
+# FRONTEND
 # =========================================================
 
 @app.route("/")
 def home():
-    return send_from_directory(BASE_DIR, "index.html")
+    return send_from_directory(
+        BASE_DIR,
+        "index.html"
+    )
 
 
 @app.route("/index.html")
 def index_page():
-    return send_from_directory(BASE_DIR, "index.html")
+    return send_from_directory(
+        BASE_DIR,
+        "index.html"
+    )
 
 
 @app.route("/health")
@@ -178,12 +292,32 @@ def health():
     })
 
 
-@app.route("/api/login", methods=["POST"])
+# =========================================================
+# LOGIN
+# =========================================================
+
+@app.route(
+    "/api/login",
+    methods=["POST"]
+)
 def login():
-    data = request.get_json(silent=True) or {}
 
-    username = clean_username(data.get("username"))
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
 
+    username = clean_username(
+        data.get("username")
+    )
+
+    pin = str(
+        data.get("pin") or ""
+    ).strip()
+
+    # Basic validation
     if not username:
         return jsonify({
             "ok": False,
@@ -196,168 +330,177 @@ def login():
             "error": "Username must be at least 2 characters."
         }), 400
 
+    # Banned usernames
     if username.lower() in {
-        item.lower() for item in BANNED
+        item.lower()
+        for item in BANNED
     }:
         return jsonify({
             "ok": False,
             "error": "This username is banned."
         }), 403
 
-    # IMPORTANT:
-    # Same username is rejected, even if capitalization differs.
-    if username_exists(username):
-        return jsonify({
-            "ok": False,
-            "error": "Username already taken."
-        }), 409
+    # =====================================================
+    # MATIA = RESERVED OWNER NAME
+    # =====================================================
 
-    new_role = "owner" if len(USERS) == 0 else "user"
+    if username.lower() == OWNER_USERNAME.lower():
 
+        # Owner already online
+        if username_exists(
+            OWNER_USERNAME
+        ):
+            return jsonify({
+                "ok": False,
+                "error": "Owner is already online."
+            }), 409
+
+        # Wrong PIN
+        if pin != OWNER_PIN:
+            return jsonify({
+                "ok": False,
+                "error":
+                    "That username is reserved for the Owner."
+            }), 403
+
+        username = OWNER_USERNAME
+        role = "owner"
+
+    # =====================================================
+    # NORMAL USERS
+    # =====================================================
+
+    else:
+
+        if username_exists(username):
+            return jsonify({
+                "ok": False,
+                "error": "Username already taken."
+            }), 409
+
+        role = "user"
+
+    # Create
     USERS[username] = {
-        "role": new_role,
-        "joined": datetime.now().isoformat()
+        "role": role,
+        "joined": now_iso(),
+        "socket_id": None
     }
 
-    if new_role == "owner":
-        GROUPS["main"]["owner"] = username
+    if role == "owner":
+        GROUPS["main"]["owner"] = OWNER_USERNAME
 
-    broadcast_users()
-    broadcast_groups()
+    token = make_token(username)
+
+    send_users()
 
     return jsonify({
         "ok": True,
         "username": username,
-        "role": new_role
+        "role": role,
+        "token": token
     })
 
 
-@app.route("/api/messages")
-def get_messages():
-    group = request.args.get("group", "main")
+# =========================================================
+# USERS
+# =========================================================
 
-    result = [
-        message
-        for message in MESSAGES
-        if message["group"] == group
-    ]
+@app.route("/api/users")
+def users_api():
 
-    return jsonify(result)
+    return jsonify([
+        {
+            "username": username,
+            "role": data.get(
+                "role",
+                "user"
+            ),
+            "online": True
+        }
+        for username, data
+        in USERS.items()
+    ])
 
+
+# =========================================================
+# GROUPS
+# =========================================================
 
 @app.route("/api/groups")
-def get_groups():
+def groups_api():
+
     return jsonify([
         {
             "id": group_id,
             "name": group["name"]
         }
-        for group_id, group in GROUPS.items()
+        for group_id, group
+        in GROUPS.items()
     ])
 
 
-@app.route("/api/users")
-def get_users():
-    return jsonify([
-        {
-            "username": username,
-            "role": info["role"],
-            "online": True
-        }
-        for username, info in USERS.items()
-    ])
+@app.route(
+    "/api/group",
+    methods=["POST"]
+)
+def create_group_api():
 
-
-@app.route("/api/messages", methods=["POST"])
-def post_message():
-    data = request.get_json(silent=True) or {}
-
-    username = clean_username(data.get("username"))
-    text = clean_text(data.get("text"))
-    group = clean_text(data.get("group") or "main")
-
-    actual_username = get_existing_username(username)
-
-    if actual_username is None:
-        return jsonify({
-            "ok": False,
-            "error": "Login first."
-        }), 403
-
-    if actual_username in MUTED:
-        return jsonify({
-            "ok": False,
-            "error": "You are muted."
-        }), 403
-
-    if group in LOCKED_GROUPS and not is_mod(actual_username):
-        return jsonify({
-            "ok": False,
-            "error": "This group is locked."
-        }), 403
-
-    if not text:
-        return jsonify({
-            "ok": False,
-            "error": "Message is empty."
-        }), 400
-
-    if text.startswith("/"):
-        return jsonify({
-            "ok": False,
-            "error": "Use the command endpoint for commands."
-        }), 400
-
-    message = add_message(
-        actual_username,
-        text,
-        group,
-        "user"
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
     )
 
-    socketio.emit("new_message", message)
+    username = clean_username(
+        data.get("username")
+    )
 
-    return jsonify({
-        "ok": True,
-        "message": message
-    })
+    token = str(
+        data.get("token") or ""
+    )
 
+    name = str(
+        data.get("name") or ""
+    ).strip()[:40]
 
-@app.route("/api/group", methods=["POST"])
-def create_group():
-    data = request.get_json(silent=True) or {}
+    user = verify_token(
+        token,
+        username
+    )
 
-    username = clean_username(data.get("username"))
-    name = clean_text(data.get("name"))
-
-    actual_username = get_existing_username(username)
-
-    if actual_username is None:
+    if user is None:
         return jsonify({
             "ok": False,
-            "error": "Login first."
+            "error": "Invalid session."
         }), 403
 
-    if not is_mod(actual_username):
+    if not is_mod(user):
         return jsonify({
             "ok": False,
-            "error": "Only Owner or Mod can create groups."
+            "error":
+                "Only Owner or Mod can create groups."
         }), 403
 
     if not name:
         return jsonify({
             "ok": False,
-            "error": "Enter a group name."
+            "error":
+                "Enter a group name."
         }), 400
 
-    group_id = f"group_{len(GROUPS)}"
+    group_id = (
+        "group_" +
+        secrets.token_hex(4)
+    )
 
     GROUPS[group_id] = {
         "name": name,
-        "owner": actual_username
+        "owner": user
     }
 
-    broadcast_groups()
+    send_groups()
 
     return jsonify({
         "ok": True,
@@ -367,23 +510,150 @@ def create_group():
 
 
 # =========================================================
+# MESSAGES
+# =========================================================
+
+@app.route("/api/messages")
+def messages_get():
+
+    group = request.args.get(
+        "group",
+        "main"
+    )
+
+    return jsonify([
+        message
+        for message in MESSAGES
+        if message["group"] == group
+    ])
+
+
+@app.route(
+    "/api/messages",
+    methods=["POST"]
+)
+def messages_post():
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+    username = clean_username(
+        data.get("username")
+    )
+
+    token = str(
+        data.get("token") or ""
+    )
+
+    text = str(
+        data.get("text") or ""
+    ).strip()
+
+    text = text[:MAX_MESSAGE_LENGTH]
+
+    group = str(
+        data.get("group") or "main"
+    ).strip()
+
+    user = verify_token(
+        token,
+        username
+    )
+
+    if user is None:
+        return jsonify({
+            "ok": False,
+            "error": "Invalid session."
+        }), 403
+
+    if not text:
+        return jsonify({
+            "ok": False,
+            "error": "Message is empty."
+        }), 400
+
+    if user in MUTED:
+        return jsonify({
+            "ok": False,
+            "error": "You are muted."
+        }), 403
+
+    if (
+        group in LOCKED_GROUPS
+        and not is_mod(user)
+    ):
+        return jsonify({
+            "ok": False,
+            "error": "This group is locked."
+        }), 403
+
+    if text.startswith("/"):
+        return jsonify({
+            "ok": False,
+            "error": "Use the command system."
+        }), 400
+
+    message = add_message(
+        user,
+        text,
+        group,
+        "user"
+    )
+
+    broadcast_message(message)
+
+    return jsonify({
+        "ok": True,
+        "message": message
+    })
+
+
+# =========================================================
 # COMMANDS
 # =========================================================
 
-@app.route("/api/command", methods=["POST"])
+@app.route(
+    "/api/command",
+    methods=["POST"]
+)
 def command_api():
-    data = request.get_json(silent=True) or {}
 
-    username = clean_username(data.get("username"))
-    command_text = clean_text(data.get("command"))
-    group = clean_text(data.get("group") or "main")
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
 
-    actual_username = get_existing_username(username)
+    username = clean_username(
+        data.get("username")
+    )
 
-    if actual_username is None:
+    token = str(
+        data.get("token") or ""
+    )
+
+    command_text = str(
+        data.get("command") or ""
+    ).strip()
+
+    group = str(
+        data.get("group") or "main"
+    ).strip()
+
+    user = verify_token(
+        token,
+        username
+    )
+
+    if user is None:
         return jsonify({
             "ok": False,
-            "error": "Login first."
+            "error": "Invalid session."
         }), 403
 
     if not command_text.startswith("/"):
@@ -393,24 +663,34 @@ def command_api():
         }), 400
 
     parts = command_text.split()
+
     command = parts[0].lower()
+
     args = parts[1:]
 
-    # ---------------- FUN ----------------
+    # =====================================================
+    # NORMAL COMMANDS
+    # =====================================================
 
-    if command == "/help" or command == "/commands":
+    if command in (
+        "/help",
+        "/commands"
+    ):
 
         text = (
-            "📚 Commands: "
-            "/time /flip /dice /roll /8ball /rate "
-            "/online /users /clear /announce /kick "
-            "/ban /unban /mute /unmute /promote /demote "
-            "/lock /unlock /rename /hug /slap /dance"
+            "📚 User: /time /flip /dice /roll "
+            "/8ball /rate /online /users "
+            "/hug /slap /dance"
         )
 
     elif command == "/time":
 
-        text = f"🕐 Server time: {datetime.now().strftime('%H:%M:%S')}"
+        text = (
+            "🕐 Server time: "
+            + datetime.now().strftime(
+                "%H:%M:%S"
+            )
+        )
 
     elif command == "/flip":
 
@@ -421,22 +701,31 @@ def command_api():
 
     elif command == "/dice":
 
-        text = f"🎲 You rolled {random.randint(1, 6)}"
+        text = (
+            f"🎲 You rolled "
+            f"{random.randint(1,6)}"
+        )
 
     elif command == "/roll":
 
-        max_value = 100
+        maximum = 100
 
         if args:
             try:
-                max_value = max(
+                maximum = max(
                     1,
-                    min(int(args[0]), 100000)
+                    min(
+                        int(args[0]),
+                        100000
+                    )
                 )
             except ValueError:
                 pass
 
-        text = f"🎲 Roll: {random.randint(1, max_value)}"
+        text = (
+            f"🎲 Roll: "
+            f"{random.randint(1, maximum)}"
+        )
 
     elif command == "/8ball":
 
@@ -452,328 +741,588 @@ def command_api():
 
     elif command == "/rate":
 
-        target = " ".join(args) or actual_username
+        target = (
+            " ".join(args)
+            or user
+        )
 
         text = (
-            f"⭐ {target} gets "
+            f"⭐ {target}: "
             f"{random.randint(1,100)}/100"
         )
 
-    elif command == "/online" or command == "/users":
+    elif command in (
+        "/online",
+        "/users"
+    ):
 
-        text = f"🟢 Online users: {len(USERS)}"
+        text = (
+            f"🟢 Online users: "
+            f"{len(USERS)}"
+        )
 
     elif command == "/hug":
 
-        target = " ".join(args) or "everyone"
+        target = (
+            " ".join(args)
+            or "everyone"
+        )
 
-        text = f"🤗 {actual_username} hugged {target}"
+        text = (
+            f"🤗 {user} hugged "
+            f"{target}"
+        )
 
     elif command == "/slap":
 
-        target = " ".join(args) or "the air"
+        target = (
+            " ".join(args)
+            or "the air"
+        )
 
-        text = f"👋 {actual_username} slapped {target}"
+        text = (
+            f"👋 {user} slapped "
+            f"{target}"
+        )
 
     elif command == "/dance":
 
-        text = f"💃 {actual_username} is dancing!"
+        text = (
+            f"💃 {user} is dancing!"
+        )
 
-    # ---------------- MODERATION ----------------
+    # =====================================================
+    # CLEAR
+    # =====================================================
 
     elif command == "/clear":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can use /clear."
+                "error":
+                    "Only Owner/Mod can use /clear."
             }), 403
 
         MESSAGES[:] = [
-            m for m in MESSAGES
+            m
+            for m in MESSAGES
             if m["group"] != group
         ]
 
-        socketio.emit("clear_group", {
-            "group": group
-        })
+        socketio.emit(
+            "clear_group",
+            {
+                "group": group
+            }
+        )
 
         text = "🧹 Chat cleared."
 
+    # =====================================================
+    # ANNOUNCE
+    # =====================================================
+
     elif command == "/announce":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can announce."
+                "error":
+                    "Only Owner/Mod can announce."
             }), 403
 
-        announcement = " ".join(args).strip()
+        announcement = (
+            " ".join(args)
+            .strip()
+        )
 
         if not announcement:
             return jsonify({
                 "ok": False,
-                "error": "Usage: /announce your message"
+                "error":
+                    "Usage: /announce message"
             }), 400
 
-        socketio.emit("announcement", {
-            "text": announcement,
-            "username": actual_username
-        })
+        socketio.emit(
+            "announcement",
+            {
+                "text":
+                    announcement,
+                "username":
+                    user
+            }
+        )
 
-        text = f"📢 {announcement}"
+        text = (
+            f"📢 {announcement}"
+        )
+
+    # =====================================================
+    # KICK
+    # =====================================================
 
     elif command == "/kick":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can kick."
+                "error":
+                    "Only Owner/Mod can kick."
             }), 403
 
-        target = clean_username(args[0] if args else "")
-        existing_target = get_existing_username(target)
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        if existing_target is None:
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
 
             text = "❌ User not found."
 
-        elif is_owner(existing_target):
+        elif is_owner(target_user):
 
-            text = "❌ The Owner cannot be kicked."
+            text = (
+                "❌ The Owner cannot be kicked."
+            )
 
-        elif existing_target == actual_username:
+        elif (
+            target_user.lower()
+            == user.lower()
+        ):
 
-            text = "❌ You cannot kick yourself."
+            text = (
+                "❌ You cannot kick yourself."
+            )
+
+        elif (
+            get_role(user) == "mod"
+            and get_role(target_user) == "mod"
+        ):
+
+            text = (
+                "❌ A Mod cannot kick another Mod."
+            )
 
         else:
 
-            USERS.pop(existing_target)
+            sid = USERS[
+                target_user
+            ].get("socket_id")
 
-            socketio.emit("force_logout", {
-                "username": existing_target
-            })
+            if sid:
 
-            broadcast_users()
+                socketio.emit(
+                    "force_logout",
+                    {
+                        "username":
+                            target_user
+                    },
+                    to=sid
+                )
 
-            text = f"👢 {existing_target} was kicked."
+            remove_user(
+                target_user
+            )
+
+            send_users()
+
+            text = (
+                f"👢 {target_user} was kicked."
+            )
+
+    # =====================================================
+    # BAN
+    # =====================================================
 
     elif command == "/ban":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can ban."
+                "error":
+                    "Only Owner/Mod can ban."
             }), 403
 
-        target = clean_username(args[0] if args else "")
-        existing_target = get_existing_username(target)
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        if existing_target is None:
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
 
             text = "❌ User not found."
 
-        elif is_owner(existing_target):
+        elif is_owner(target_user):
 
-            text = "❌ The Owner cannot be banned."
+            text = (
+                "❌ The Owner cannot be banned."
+            )
 
-        elif existing_target == actual_username:
+        elif (
+            target_user.lower()
+            == user.lower()
+        ):
 
-            text = "❌ You cannot ban yourself."
+            text = (
+                "❌ You cannot ban yourself."
+            )
+
+        elif (
+            get_role(user) == "mod"
+            and get_role(target_user) == "mod"
+        ):
+
+            text = (
+                "❌ A Mod cannot ban another Mod."
+            )
 
         else:
 
-            BANNED.add(existing_target)
-            USERS.pop(existing_target)
+            sid = USERS[
+                target_user
+            ].get("socket_id")
 
-            socketio.emit("force_logout", {
-                "username": existing_target
-            })
+            BANNED.add(
+                target_user
+            )
 
-            broadcast_users()
+            if sid:
 
-            text = f"🔨 {existing_target} was banned."
+                socketio.emit(
+                    "force_logout",
+                    {
+                        "username":
+                            target_user
+                    },
+                    to=sid
+                )
+
+            remove_user(
+                target_user
+            )
+
+            send_users()
+
+            text = (
+                f"🔨 {target_user} was banned."
+            )
+
+    # =====================================================
+    # UNBAN
+    # =====================================================
 
     elif command == "/unban":
 
-        if not is_owner(actual_username):
+        if not is_owner(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner can unban."
+                "error":
+                    "Only Owner can unban."
             }), 403
 
-        target = clean_username(args[0] if args else "")
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
         if not target:
             return jsonify({
                 "ok": False,
-                "error": "Usage: /unban username"
+                "error":
+                    "Usage: /unban username"
             }), 400
 
-        BANNED.discard(target)
+        BANNED.discard(
+            target
+        )
 
-        text = f"✅ {target} was unbanned."
+        text = (
+            f"✅ {target} was unbanned."
+        )
+
+    # =====================================================
+    # MUTE
+    # =====================================================
 
     elif command == "/mute":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can mute."
+                "error":
+                    "Only Owner/Mod can mute."
             }), 403
 
-        target = clean_username(args[0] if args else "")
-        existing_target = get_existing_username(target)
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        if existing_target is None:
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
 
             text = "❌ User not found."
 
-        elif is_owner(existing_target):
+        elif is_owner(target_user):
 
-            text = "❌ The Owner cannot be muted."
+            text = (
+                "❌ The Owner cannot be muted."
+            )
+
+        elif (
+            get_role(user) == "mod"
+            and get_role(target_user) == "mod"
+        ):
+
+            text = (
+                "❌ A Mod cannot mute another Mod."
+            )
 
         else:
 
-            MUTED.add(existing_target)
+            MUTED.add(
+                target_user
+            )
 
-            text = f"🔇 {existing_target} was muted."
+            text = (
+                f"🔇 {target_user} was muted."
+            )
+
+    # =====================================================
+    # UNMUTE
+    # =====================================================
 
     elif command == "/unmute":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can unmute."
+                "error":
+                    "Only Owner/Mod can unmute."
             }), 403
 
-        target = clean_username(args[0] if args else "")
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        MUTED.discard(target)
+        MUTED.discard(
+            target
+        )
 
-        text = f"🔊 {target} was unmuted."
+        text = (
+            f"🔊 {target} was unmuted."
+        )
+
+    # =====================================================
+    # PROMOTE
+    # =====================================================
 
     elif command == "/promote":
 
-        if not is_owner(actual_username):
+        if not is_owner(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner can promote."
+                "error":
+                    "Only Owner can promote."
             }), 403
 
-        target = clean_username(args[0] if args else "")
-        existing_target = get_existing_username(target)
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        if existing_target is None:
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
 
             text = "❌ User not found."
 
-        elif is_owner(existing_target):
+        elif is_owner(target_user):
 
-            text = "👑 User is already Owner."
+            text = (
+                "👑 That user is already Owner."
+            )
 
         else:
 
-            USERS[existing_target]["role"] = "mod"
-            broadcast_users()
+            USERS[
+                target_user
+            ]["role"] = "mod"
+
+            send_users()
 
             text = (
-                f"🛡️ {existing_target} "
-                f"is now a Mod."
+                f"🛡️ {target_user} is now a Mod."
             )
+
+    # =====================================================
+    # DEMOTE
+    # =====================================================
 
     elif command == "/demote":
 
-        if not is_owner(actual_username):
+        if not is_owner(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner can demote."
+                "error":
+                    "Only Owner can demote."
             }), 403
 
-        target = clean_username(args[0] if args else "")
-        existing_target = get_existing_username(target)
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        if existing_target is None:
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
 
             text = "❌ User not found."
 
-        elif is_owner(existing_target):
+        elif is_owner(target_user):
 
-            text = "❌ Owner cannot be demoted."
+            text = (
+                "❌ Owner cannot be demoted."
+            )
 
         else:
 
-            USERS[existing_target]["role"] = "user"
-            broadcast_users()
+            USERS[
+                target_user
+            ]["role"] = "user"
+
+            send_users()
 
             text = (
-                f"⬇️ {existing_target} "
-                f"is now a User."
+                f"⬇️ {target_user} is now a User."
             )
+
+    # =====================================================
+    # LOCK
+    # =====================================================
 
     elif command == "/lock":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can lock."
+                "error":
+                    "Only Owner/Mod can lock."
             }), 403
 
-        LOCKED_GROUPS.add(group)
+        LOCKED_GROUPS.add(
+            group
+        )
 
-        text = "🔒 This group is now locked."
+        text = (
+            "🔒 This group is locked."
+        )
+
+    # =====================================================
+    # UNLOCK
+    # =====================================================
 
     elif command == "/unlock":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can unlock."
+                "error":
+                    "Only Owner/Mod can unlock."
             }), 403
 
-        LOCKED_GROUPS.discard(group)
+        LOCKED_GROUPS.discard(
+            group
+        )
 
-        text = "🔓 This group is now unlocked."
+        text = (
+            "🔓 This group is unlocked."
+        )
+
+    # =====================================================
+    # RENAME
+    # =====================================================
 
     elif command == "/rename":
 
-        if not is_mod(actual_username):
+        if not is_mod(user):
             return jsonify({
                 "ok": False,
-                "error": "Only Owner/Mod can rename."
+                "error":
+                    "Only Owner/Mod can rename."
             }), 403
 
-        new_name = " ".join(args).strip()
+        new_name = (
+            " ".join(args)
+            .strip()
+        )[:40]
 
         if not new_name:
             return jsonify({
                 "ok": False,
-                "error": "Usage: /rename New Name"
+                "error":
+                    "Usage: /rename New Name"
             }), 400
 
         if group not in GROUPS:
             return jsonify({
                 "ok": False,
-                "error": "Group not found."
+                "error":
+                    "Group not found."
             }), 404
 
-        GROUPS[group]["name"] = new_name
+        GROUPS[group]["name"] = (
+            new_name
+        )
 
-        broadcast_groups()
+        send_groups()
 
-        text = f"✏️ Group renamed to {new_name}"
+        text = (
+            f"✏️ Group renamed to {new_name}"
+        )
 
     else:
 
         return jsonify({
             "ok": False,
-            "error": f"Unknown command: {command}"
+            "error":
+                f"Unknown command: {command}"
         }), 400
 
-    command_result(
-        actual_username,
+
+    message = add_message(
+        user,
         text,
-        group
+        group,
+        "command"
+    )
+
+    broadcast_message(
+        message
     )
 
     return jsonify({
@@ -787,134 +1336,239 @@ def command_api():
 # =========================================================
 
 @socketio.on("connect")
-def on_connect():
-    emit("server_status", {
-        "status": "connected"
-    })
+def socket_connect():
 
-    broadcast_users()
-    broadcast_groups()
+    emit(
+        "server_status",
+        {
+            "status": "connected"
+        }
+    )
+
+    send_users()
+    send_groups()
 
 
 @socketio.on("login")
 def socket_login(data):
+
     data = data or {}
 
     username = clean_username(
         data.get("username")
     )
 
-    if not username:
-        emit("login_error", {
-            "error": "Enter a username."
-        })
+    token = str(
+        data.get("token") or ""
+    )
+
+    user = verify_token(
+        token,
+        username
+    )
+
+    if user is None:
+
+        emit(
+            "login_error",
+            {
+                "error":
+                    "Invalid login session."
+            }
+        )
+
         return
 
-    if username.lower() in {
-        item.lower() for item in BANNED
-    }:
-        emit("login_error", {
-            "error": "This username is banned."
-        })
-        return
 
-    # NEVER replace an existing user.
-    if username_exists(username):
-        emit("login_error", {
-            "error": "Username already taken."
-        })
-        return
+    sid = request.sid
 
-    new_role = "owner" if len(USERS) == 0 else "user"
 
-    USERS[username] = {
-        "role": new_role,
-        "joined": datetime.now().isoformat()
-    }
+    old_sid = USERS[
+        user
+    ].get("socket_id")
 
-    if new_role == "owner":
-        GROUPS["main"]["owner"] = username
 
-    emit("login_success", {
-        "username": username,
-        "role": new_role
-    })
+    # Reconnect handling
+    if old_sid and old_sid != sid:
 
-    broadcast_users()
-    broadcast_groups()
+        SOCKET_USERS.pop(
+            old_sid,
+            None
+        )
+
+
+    USERS[
+        user
+    ]["socket_id"] = sid
+
+
+    SOCKET_USERS[
+        sid
+    ] = user
+
+
+    emit(
+        "login_success",
+        {
+            "username":
+                user,
+
+            "role":
+                get_role(user)
+        }
+    )
+
+
+    send_users()
 
 
 @socketio.on("send_message")
 def socket_send_message(data):
+
     data = data or {}
 
     username = clean_username(
         data.get("username")
     )
 
-    text = clean_text(
-        data.get("text")
+    token = str(
+        data.get("token") or ""
     )
 
-    group = clean_text(
+    text = str(
+        data.get("text") or ""
+    ).strip()[:MAX_MESSAGE_LENGTH]
+
+    group = str(
         data.get("group") or "main"
+    ).strip()
+
+
+    user = verify_token(
+        token,
+        username
     )
 
-    actual_username = get_existing_username(username)
 
-    if actual_username is None:
-        emit("error_message", {
-            "error": "Login first."
-        })
+    if user is None:
+
+        emit(
+            "error_message",
+            {
+                "error":
+                    "Invalid session."
+            }
+        )
+
         return
 
-    if actual_username in MUTED:
-        emit("error_message", {
-            "error": "You are muted."
-        })
-        return
-
-    if group in LOCKED_GROUPS and not is_mod(actual_username):
-        emit("error_message", {
-            "error": "This group is locked."
-        })
-        return
 
     if not text:
         return
 
-    if text.startswith("/"):
-        emit("error_message", {
-            "error": "Use commands through the command box."
-        })
+
+    if user in MUTED:
+
+        emit(
+            "error_message",
+            {
+                "error":
+                    "You are muted."
+            }
+        )
+
         return
 
+
+    if (
+        group in LOCKED_GROUPS
+        and not is_mod(user)
+    ):
+
+        emit(
+            "error_message",
+            {
+                "error":
+                    "This group is locked."
+            }
+        )
+
+        return
+
+
+    if text.startswith("/"):
+
+        emit(
+            "error_message",
+            {
+                "error":
+                    "Use the command system."
+            }
+        )
+
+        return
+
+
     message = add_message(
-        actual_username,
+        user,
         text,
         group,
         "user"
     )
 
-    socketio.emit(
-        "new_message",
+
+    broadcast_message(
         message
     )
 
 
 @socketio.on("disconnect")
-def on_disconnect():
-    pass
+def socket_disconnect():
+
+    sid = request.sid
+
+    user = SOCKET_USERS.pop(
+        sid,
+        None
+    )
+
+    if not user:
+        return
+
+    current_user = existing_username(
+        user
+    )
+
+    if current_user is None:
+        return
+
+    current_sid = USERS[
+        current_user
+    ].get("socket_id")
+
+
+    # Remove only if this was the
+    # active socket of the user.
+    if current_sid == sid:
+
+        remove_user(
+            current_user
+        )
+
+        send_users()
 
 
 # =========================================================
-# RUN
+# START
 # =========================================================
 
 if __name__ == "__main__":
 
     port = int(
-        os.environ.get("PORT", 5000)
+        os.environ.get(
+            "PORT",
+            5000
+        )
     )
 
     socketio.run(
