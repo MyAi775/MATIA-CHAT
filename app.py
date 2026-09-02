@@ -1,21 +1,17 @@
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO
-import uuid
-import time
+import os
 import random
+import time
+from datetime import datetime
 
-# =========================================================
-# MATIA CHAT
-# =========================================================
+from flask import Flask, request, send_file
+from flask_socketio import SocketIO, emit
+
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "matia-chat-secret"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "matia-chat-secret")
 
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    async_mode="eventlet"
-)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 
 # =========================================================
 # DATA
@@ -30,103 +26,194 @@ GROUP = {
     "locked": False
 }
 
-# =========================================================
-# COMMANDS
-# =========================================================
+MAX_USERNAME = 20
+MAX_MESSAGE = 2000
 
-OWNER_COMMANDS = {
-    "ban", "unban", "kick", "mute", "unmute",
-    "promote", "demote", "announce", "event",
-    "clear", "lock", "unlock", "rename", "help",
-
-    "fun", "coinflip", "dice", "roll", "8ball",
-    "joke", "rate", "ship", "slap", "hug",
-    "highfive", "dance", "spin", "rps",
-    "trivia", "quiz", "online", "users",
-    "whois", "rules", "time", "party",
-    "fireworks", "confetti", "rainbow",
-    "disco", "matrix", "neon", "fire"
-}
-
-MOD_COMMANDS = {
-    "ban", "unban", "kick", "mute", "unmute",
-    "help",
-
-    "fun", "coinflip", "dice", "roll", "8ball",
-    "joke", "rate", "ship", "slap", "hug",
-    "highfive", "dance", "spin", "rps",
-    "trivia", "quiz", "online", "users",
-    "whois", "rules", "time", "party",
-    "fireworks", "confetti", "rainbow",
-    "disco", "matrix", "neon", "fire"
-}
 
 # =========================================================
 # HELPERS
 # =========================================================
 
-def can_use(username, command):
-
-    if username not in USERS:
-        return False
-
-    role = USERS[username]["role"]
-
-    if role == "owner":
-        return command in OWNER_COMMANDS
-
-    if role == "mod":
-        return command in MOD_COMMANDS
-
-    return False
+def now():
+    return datetime.now().strftime("%H:%M")
 
 
-def system_message(text):
+def clean_username(username):
+    if not username:
+        return ""
 
-    socketio.emit(
-        "system",
-        {
-            "text": text
-        }
-    )
+    username = str(username).strip()
+    username = " ".join(username.split())
 
-
-def command_result(sid, text):
-
-    socketio.emit(
-        "command_result",
-        {
-            "text": text
-        },
-        to=sid
-    )
+    return username[:MAX_USERNAME]
 
 
-def add_message(username, text):
+def find_user(username):
+    username_lower = username.lower()
 
+    for name, data in USERS.items():
+        if name.lower() == username_lower:
+            return name, data
+
+    return None, None
+
+
+def is_online(username):
+    return username in CONNECTED
+
+
+def online_users():
+    return list(CONNECTED.values())
+
+
+def add_message(username, text, msg_type="message"):
     message = {
-        "id": str(uuid.uuid4()),
-        "user": username,
+        "username": username,
         "text": text,
-        "time": time.strftime("%H:%M"),
-        "system": False
+        "time": now(),
+        "type": msg_type
     }
 
     MESSAGES.append(message)
 
-    if len(MESSAGES) > 200:
-        MESSAGES.pop(0)
+    if len(MESSAGES) > 500:
+        del MESSAGES[:-500]
 
     return message
 
 
+def broadcast_system(text):
+    message = add_message("MATIA CHAT", text, "system")
+    socketio.emit("message", message)
+
+
+def broadcast_users():
+    users = []
+
+    for username, role in USERS.items():
+        users.append({
+            "username": username,
+            "role": role.get("role", "member"),
+            "online": username in CONNECTED.values()
+        })
+
+    socketio.emit("users", users)
+
+
+def get_role(username):
+    user, data = find_user(username)
+
+    if not data:
+        return "member"
+
+    return data.get("role", "member")
+
+
+def is_staff(username):
+    return get_role(username) in ("owner", "mod")
+
+
+def is_owner(username):
+    return get_role(username) == "owner"
+
+
+def command_help(username):
+    role = get_role(username)
+
+    commands = [
+        "/help",
+        "/fun",
+        "/coinflip",
+        "/dice",
+        "/roll",
+        "/8ball",
+        "/joke",
+        "/rate",
+        "/ship",
+        "/slap",
+        "/hug",
+        "/highfive",
+        "/dance",
+        "/spin",
+        "/rps",
+        "/trivia",
+        "/quiz",
+        "/online",
+        "/users",
+        "/whois",
+        "/rules",
+        "/time",
+        "/party",
+        "/fireworks",
+        "/confetti",
+        "/rainbow",
+        "/disco",
+        "/matrix",
+        "/neon",
+        "/fire",
+    ]
+
+    if role in ("owner", "mod"):
+        commands += [
+            "/ban username",
+            "/unban username",
+            "/kick username",
+            "/mute username",
+            "/unmute username",
+        ]
+
+    if role == "owner":
+        commands += [
+            "/promote username",
+            "/demote username",
+            "/announce text",
+            "/clear",
+            "/lock",
+            "/unlock",
+            "/rename name",
+            "/event effect",
+        ]
+
+    return commands
+
+
 # =========================================================
-# HOME
+# ROUTES
 # =========================================================
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    # index.html is next to app.py
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+
+    if not os.path.exists(path):
+        return """
+        <h1>MATIA CHAT ERROR</h1>
+        <p>index.html was not found.</p>
+        <p>Make sure index.html is in the same folder as app.py.</p>
+        """, 500
+
+    return send_file(path)
+
+
+@app.route("/health")
+def health():
+    return {
+        "status": "online",
+        "service": "MATIA CHAT"
+    }
+
+
+# =========================================================
+# CONNECT
+# =========================================================
+
+@socketio.on("connect")
+def handle_connect():
+    emit("connected", {
+        "status": "connected",
+        "group": GROUP
+    })
 
 
 # =========================================================
@@ -134,1241 +221,64 @@ def index():
 # =========================================================
 
 @socketio.on("login")
-def login(data):
+def handle_login(data):
+    sid = request.sid
 
-    username = str(
-        data.get("username", "")
-    ).strip()
+    username = clean_username(
+        data.get("username", "") if isinstance(data, dict) else ""
+    )
 
     if not username:
-
-        socketio.emit(
-            "login_result",
-            {
-                "ok": False,
-                "error": "Please enter a username."
-            },
-            to=request.sid
-        )
-
+        emit("login_error", {
+            "error": "Enter a username."
+        })
         return
 
-    if len(username) > 20:
+    username_real, existing = find_user(username)
 
-        socketio.emit(
-            "login_result",
-            {
-                "ok": False,
-                "error": "Username must be 20 characters or less."
-            },
-            to=request.sid
-        )
-
+    if existing and existing.get("banned"):
+        emit("login_error", {
+            "error": "You are banned from MATIA CHAT."
+        })
         return
 
-    if username in CONNECTED.values():
-
-        socketio.emit(
-            "login_result",
-            {
-                "ok": False,
-                "error": "That username is already online."
-            },
-            to=request.sid
-        )
-
+    if username_real and username_real in CONNECTED.values():
+        emit("login_error", {
+            "error": "That username is already online."
+        })
         return
 
-    # =====================================================
-    # CREATE USER
-    # =====================================================
+    # First user becomes owner
+    if not USERS:
+        role = "owner"
+    elif existing:
+        role = existing.get("role", "member")
+    else:
+        role = "member"
 
-    if username not in USERS:
-
-        # First user becomes Owner
-        role = "owner" if len(USERS) == 0 else "member"
-
+    if username_real:
+        username = username_real
+        USERS[username]["online"] = True
+    else:
         USERS[username] = {
             "role": role,
             "banned": False,
-            "muted": False
+            "muted": False,
+            "online": True,
+            "joined": time.time()
         }
 
-    user = USERS[username]
-
-    # =====================================================
-    # BAN CHECK
-    # =====================================================
-
-    if user["banned"]:
-
-        socketio.emit(
-            "login_result",
-            {
-                "ok": False,
-                "error": "You are banned."
-            },
-            to=request.sid
-        )
-
-        return
-
-    # =====================================================
-    # CONNECT
-    # =====================================================
-
-    CONNECTED[request.sid] = username
-
-    socketio.emit(
-        "login_result",
-        {
-            "ok": True,
-            "username": username,
-            "role": user["role"],
-            "group": GROUP,
-            "messages": MESSAGES
-        },
-        to=request.sid
-    )
-
-    system_message(
-        f"🟢 {username} joined {GROUP['name']}."
-    )
-
-
-# =========================================================
-# MESSAGE
-# =========================================================
-
-@socketio.on("message")
-def message(data):
-
-    sid = request.sid
-
-    if sid not in CONNECTED:
-        return
-
-    username = CONNECTED[sid]
-
-    text = str(
-        data.get("text", "")
-    ).strip()
-
-    if not text:
-        return
-
-    user = USERS.get(username)
-
-    if not user:
-        return
-
-    # BANNED
-    if user["banned"]:
-        return
-
-    # MUTED
-    if user["muted"]:
-
-        socketio.emit(
-            "system",
-            {
-                "text": "🔇 You are muted."
-            },
-            to=sid
-        )
-
-        return
-
-    # LOCKED
-    if GROUP["locked"]:
-
-        if user["role"] != "owner":
-
-            socketio.emit(
-                "system",
-                {
-                    "text": "🔒 Chat is locked by the Owner."
-                },
-                to=sid
-            )
-
-            return
-
-    # COMMAND
-    if text.startswith("/"):
-
-        execute_command(
-            username,
-            sid,
-            text
-        )
-
-        return
-
-    # NORMAL MESSAGE
-    msg = add_message(
-        username,
-        text
-    )
-
-    socketio.emit(
-        "new_message",
-        msg
-    )
-
-
-# =========================================================
-# COMMAND ENGINE
-# =========================================================
-
-def execute_command(username, sid, text):
-
-    parts = text.split()
-
-    if not parts:
-        return
-
-    command = parts[0][1:].lower()
-    args = parts[1:]
-
-    # =====================================================
-    # PERMISSION
-    # =====================================================
-
-    if not can_use(username, command):
-
-        command_result(
-            sid,
-            f"🚫 Permission denied: /{command}"
-        )
-
-        return
-
-    # =====================================================
-    # HELP
-    # =====================================================
-
-    if command == "help":
-
-        role = USERS[username]["role"]
-
-        commands = (
-            OWNER_COMMANDS
-            if role == "owner"
-            else MOD_COMMANDS
-        )
-
-        command_result(
-            sid,
-            "📚 AVAILABLE COMMANDS:\n\n" +
-            " ".join(
-                "/" + x
-                for x in sorted(commands)
-            )
-        )
-
-        return
-
-    # =====================================================
-    # BAN
-    # =====================================================
-
-    if command == "ban":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /ban username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        if USERS[target]["role"] == "owner":
-
-            command_result(
-                sid,
-                "👑 You cannot ban the Owner."
-            )
-
-            return
-
-        USERS[target]["banned"] = True
-
-        for target_sid, name in list(
-            CONNECTED.items()
-        ):
-
-            if name == target:
-
-                socketio.emit(
-                    "force_disconnect",
-                    {
-                        "reason":
-                        f"🚫 You were banned by {username}."
-                    },
-                    to=target_sid
-                )
-
-                del CONNECTED[target_sid]
-
-        system_message(
-            f"🚫 {target} was banned by {username}."
-        )
-
-        return
-
-    # =====================================================
-    # UNBAN
-    # =====================================================
-
-    if command == "unban":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /unban username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        USERS[target]["banned"] = False
-
-        system_message(
-            f"✅ {target} was unbanned by {username}."
-        )
-
-        return
-
-    # =====================================================
-    # KICK
-    # =====================================================
-
-    if command == "kick":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /kick username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        if USERS[target]["role"] == "owner":
-
-            command_result(
-                sid,
-                "👑 You cannot kick the Owner."
-            )
-
-            return
-
-        for target_sid, name in list(
-            CONNECTED.items()
-        ):
-
-            if name == target:
-
-                socketio.emit(
-                    "force_disconnect",
-                    {
-                        "reason":
-                        f"👢 You were kicked by {username}."
-                    },
-                    to=target_sid
-                )
-
-                del CONNECTED[target_sid]
-
-        system_message(
-            f"👢 {target} was kicked by {username}."
-        )
-
-        return
-
-    # =====================================================
-    # MUTE
-    # =====================================================
-
-    if command == "mute":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /mute username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        if USERS[target]["role"] == "owner":
-
-            command_result(
-                sid,
-                "👑 You cannot mute the Owner."
-            )
-
-            return
-
-        USERS[target]["muted"] = True
-
-        system_message(
-            f"🔇 {target} was muted by {username}."
-        )
-
-        return
-
-    # =====================================================
-    # UNMUTE
-    # =====================================================
-
-    if command == "unmute":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /unmute username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        USERS[target]["muted"] = False
-
-        system_message(
-            f"🔊 {target} was unmuted by {username}."
-        )
-
-        return
-
-    # =====================================================
-    # PROMOTE
-    # =====================================================
-
-    if command == "promote":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /promote username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        if USERS[target]["role"] == "owner":
-
-            command_result(
-                sid,
-                "👑 User is already Owner."
-            )
-
-            return
-
-        USERS[target]["role"] = "mod"
-
-        system_message(
-            f"🛡️ {target} is now Moderator."
-        )
-
-        return
-
-    # =====================================================
-    # DEMOTE
-    # =====================================================
-
-    if command == "demote":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /demote username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        if USERS[target]["role"] == "owner":
-
-            command_result(
-                sid,
-                "👑 You cannot demote the Owner."
-            )
-
-            return
-
-        USERS[target]["role"] = "member"
-
-        system_message(
-            f"👤 {target} is now Member."
-        )
-
-        return
-
-    # =====================================================
-    # ANNOUNCE
-    # =====================================================
-
-    if command == "announce":
-
-        announcement = " ".join(args)
-
-        if not announcement:
-
-            command_result(
-                sid,
-                "Usage: /announce message"
-            )
-
-            return
-
-        socketio.emit(
-            "announcement",
-            {
-                "text": announcement,
-                "by": username
-            }
-        )
-
-        return
-
-    # =====================================================
-    # EVENT
-    # =====================================================
-
-    if command == "event":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /event rainbow"
-            )
-
-            return
-
-        event = args[0].lower()
-
-        allowed = {
-            "rainbow",
-            "disco",
-            "matrix",
-            "party",
-            "neon",
-            "fire"
-        }
-
-        if event not in allowed:
-
-            command_result(
-                sid,
-                "❌ Unknown event."
-            )
-
-            return
-
-        # GLOBAL EVENT
-        socketio.emit(
-            "event",
-            {
-                "name": event,
-                "by": username
-            }
-        )
-
-        system_message(
-            f"🎉 {username} started {event.upper()}!"
-        )
-
-        return
-
-    # =====================================================
-    # CLEAR
-    # =====================================================
-
-    if command == "clear":
-
-        MESSAGES.clear()
-
-        socketio.emit(
-            "clear_chat"
-        )
-
-        system_message(
-            f"🧹 Chat cleared by {username}."
-        )
-
-        return
-
-    # =====================================================
-    # LOCK
-    # =====================================================
-
-    if command == "lock":
-
-        GROUP["locked"] = True
-
-        socketio.emit(
-            "group_update",
-            GROUP
-        )
-
-        system_message(
-            "🔒 Chat locked by Owner."
-        )
-
-        return
-
-    # =====================================================
-    # UNLOCK
-    # =====================================================
-
-    if command == "unlock":
-
-        GROUP["locked"] = False
-
-        socketio.emit(
-            "group_update",
-            GROUP
-        )
-
-        system_message(
-            "🔓 Chat unlocked by Owner."
-        )
-
-        return
-
-    # =====================================================
-    # RENAME
-    # =====================================================
-
-    if command == "rename":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /rename new name"
-            )
-
-            return
-
-        GROUP["name"] = " ".join(args)
-
-        socketio.emit(
-            "group_update",
-            GROUP
-        )
-
-        system_message(
-            f"✏️ Group renamed to {GROUP['name']}."
-        )
-
-        return
-
-    # =====================================================
-    # FUN
-    # =====================================================
-
-    if command == "fun":
-
-        command_result(
-            sid,
-            """
-🎮 FUN COMMANDS
-
-/coinflip
-/dice
-/roll
-/8ball question
-/joke
-/rate username
-/ship user1 user2
-/slap username
-/hug username
-/highfive username
-/dance
-/spin
-/rps rock
-/rps paper
-/rps scissors
-/trivia
-/quiz
-/online
-/users
-/whois username
-/rules
-/time
-
-🌈 EVENTS
-
-/party
-/fireworks
-/confetti
-/rainbow
-/disco
-/matrix
-/neon
-/fire
-"""
-        )
-
-        return
-
-    # =====================================================
-    # COINFLIP
-    # =====================================================
-
-    if command == "coinflip":
-
-        result = random.choice(
-            [
-                "HEADS",
-                "TAILS"
-            ]
-        )
-
-        system_message(
-            f"🪙 {username} flipped → {result}!"
-        )
-
-        return
-
-    # =====================================================
-    # DICE
-    # =====================================================
-
-    if command in {"dice", "roll"}:
-
-        number = random.randint(
-            1,
-            6
-        )
-
-        system_message(
-            f"🎲 {username} rolled a {number}!"
-        )
-
-        return
-
-    # =====================================================
-    # 8 BALL
-    # =====================================================
-
-    if command == "8ball":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /8ball your question"
-            )
-
-            return
-
-        answers = [
-            "🎱 Absolutely!",
-            "🎱 Definitely!",
-            "🎱 Nope.",
-            "🎱 Maybe...",
-            "🎱 Ask again later.",
-            "🎱 100% YES!",
-            "🎱 I don't think so.",
-            "🎱 The future says YES!"
-        ]
-
-        system_message(
-            f"🎱 {username}: {random.choice(answers)}"
-        )
-
-        return
-
-    # =====================================================
-    # JOKE
-    # =====================================================
-
-    if command == "joke":
-
-        jokes = [
-            "😂 Why did the computer go to the doctor? It had a virus!",
-            "🤣 Why was the keyboard cold? It left its Windows open!",
-            "💀 I told my PC I needed space... now it deleted my files.",
-            "😂 My computer told me it needed a byte."
-        ]
-
-        system_message(
-            random.choice(jokes)
-        )
-
-        return
-
-    # =====================================================
-    # RATE
-    # =====================================================
-
-    if command == "rate":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /rate username"
-            )
-
-            return
-
-        score = random.randint(
-            1,
-            10
-        )
-
-        system_message(
-            f"⭐ {username} rated {args[0]} "
-            f"{score}/10!"
-        )
-
-        return
-
-    # =====================================================
-    # SHIP
-    # =====================================================
-
-    if command == "ship":
-
-        if len(args) < 2:
-
-            command_result(
-                sid,
-                "Usage: /ship user1 user2"
-            )
-
-            return
-
-        score = random.randint(
-            0,
-            100
-        )
-
-        system_message(
-            f"💘 {args[0]} + {args[1]} "
-            f"= {score}% ❤️"
-        )
-
-        return
-
-    # =====================================================
-    # SLAP
-    # =====================================================
-
-    if command == "slap":
-
-        target = (
-            args[0]
-            if args
-            else "everyone"
-        )
-
-        system_message(
-            f"👋 {username} slapped {target}!"
-        )
-
-        return
-
-    # =====================================================
-    # HUG
-    # =====================================================
-
-    if command == "hug":
-
-        target = (
-            args[0]
-            if args
-            else "everyone"
-        )
-
-        system_message(
-            f"🫂 {username} hugged {target}!"
-        )
-
-        return
-
-    # =====================================================
-    # HIGH FIVE
-    # =====================================================
-
-    if command == "highfive":
-
-        target = (
-            args[0]
-            if args
-            else "everyone"
-        )
-
-        system_message(
-            f"✋ {username} high-fived {target}!"
-        )
-
-        return
-
-    # =====================================================
-    # DANCE
-    # =====================================================
-
-    if command == "dance":
-
-        system_message(
-            f"🕺 {username} started dancing! 💃"
-        )
-
-        socketio.emit(
-            "event",
-            {
-                "name": "disco",
-                "by": username
-            }
-        )
-
-        return
-
-    # =====================================================
-    # SPIN
-    # =====================================================
-
-    if command == "spin":
-
-        degrees = random.randint(
-            1,
-            360
-        )
-
-        system_message(
-            f"🌀 {username} spun {degrees}°!"
-        )
-
-        return
-
-    # =====================================================
-    # RPS
-    # =====================================================
-
-    if command == "rps":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /rps rock"
-            )
-
-            return
-
-        player = args[0].lower()
-
-        choices = [
-            "rock",
-            "paper",
-            "scissors"
-        ]
-
-        if player not in choices:
-
-            command_result(
-                sid,
-                "Choose rock, paper or scissors."
-            )
-
-            return
-
-        bot = random.choice(
-            choices
-        )
-
-        if player == bot:
-
-            result = "DRAW 🤝"
-
-        elif (
-            (player == "rock" and bot == "scissors")
-            or
-            (player == "paper" and bot == "rock")
-            or
-            (player == "scissors" and bot == "paper")
-        ):
-
-            result = "YOU WIN 🏆"
-
-        else:
-
-            result = "BOT WINS 🤖"
-
-        system_message(
-            f"🎮 {username}: "
-            f"{player} vs {bot} → {result}"
-        )
-
-        return
-
-    # =====================================================
-    # TRIVIA / QUIZ
-    # =====================================================
-
-    if command in {"trivia", "quiz"}:
-
-        questions = [
-            "🌍 Capital of France? → Paris 🇫🇷",
-            "🪐 Red Planet? → Mars",
-            "⚽ Sport with a goalkeeper? → Football",
-            "💻 CPU stands for? → Central Processing Unit",
-            "🌊 Largest ocean? → Pacific Ocean"
-        ]
-
-        system_message(
-            random.choice(questions)
-        )
-
-        return
-
-    # =====================================================
-    # ONLINE
-    # =====================================================
-
-    if command in {"online", "users"}:
-
-        online = list(
-            CONNECTED.values()
-        )
-
-        if not online:
-
-            command_result(
-                sid,
-                "Nobody is online."
-            )
-
-            return
-
-        command_result(
-            sid,
-            "🟢 ONLINE USERS:\n" +
-            "\n".join(
-                "• " + name
-                for name in online
-            )
-        )
-
-        return
-
-    # =====================================================
-    # WHOIS
-    # =====================================================
-
-    if command == "whois":
-
-        if not args:
-
-            command_result(
-                sid,
-                "Usage: /whois username"
-            )
-
-            return
-
-        target = args[0]
-
-        if target not in USERS:
-
-            command_result(
-                sid,
-                "❌ User not found."
-            )
-
-            return
-
-        online = (
-            target in CONNECTED.values()
-        )
-
-        command_result(
-            sid,
-            f"""
-👤 USER INFO
-
-Username: {target}
-Role: {USERS[target]["role"].upper()}
-Online: {"YES 🟢" if online else "NO 🔴"}
-Muted: {"YES 🔇" if USERS[target]["muted"] else "NO"}
-Banned: {"YES 🚫" if USERS[target]["banned"] else "NO"}
-"""
-        )
-
-        return
-
-    # =====================================================
-    # RULES
-    # =====================================================
-
-    if command == "rules":
-
-        command_result(
-            sid,
-            """
-📜 MATIA CHAT RULES
-
-1. Be respectful.
-2. No spam.
-3. No abuse.
-4. Follow Owner/Mods.
-5. Have fun! 😎
-"""
-        )
-
-        return
-
-    # =====================================================
-    # TIME
-    # =====================================================
-
-    if command == "time":
-
-        command_result(
-            sid,
-            "🕐 Server time: " +
-            time.strftime("%H:%M:%S")
-        )
-
-        return
-
-    # =====================================================
-    # VISUAL EVENTS
-    # =====================================================
-
-    if command in {
-        "party",
-        "fireworks",
-        "confetti",
-        "rainbow",
-        "disco",
-        "matrix",
-        "neon",
-        "fire"
-    }:
-
-        event_map = {
-
-            "party": "party",
-
-            "fireworks": "party",
-
-            "confetti": "party",
-
-            "rainbow": "rainbow",
-
-            "disco": "disco",
-
-            "matrix": "matrix",
-
-            "neon": "neon",
-
-            "fire": "fire"
-        }
-
-        socketio.emit(
-            "event",
-            {
-                "name": event_map[command],
-                "by": username
-            }
-        )
-
-        return
-
-    # =====================================================
-    # UNKNOWN
-    # =====================================================
-
-    command_result(
-        sid,
-        f"❓ Unknown command: /{command}"
-    )
+    CONNECTED[sid] = username
+
+    emit("login_success", {
+        "username": username,
+        "role": USERS[username]["role"],
+        "group": GROUP,
+        "messages": MESSAGES
+    })
+
+    broadcast_system(f"{username} joined MATIA CHAT.")
+    broadcast_users()
 
 
 # =========================================================
@@ -1376,46 +286,726 @@ Banned: {"YES 🚫" if USERS[target]["banned"] else "NO"}
 # =========================================================
 
 @socketio.on("disconnect")
-def disconnect():
+def handle_disconnect():
+    username = CONNECTED.pop(request.sid, None)
 
-    username = CONNECTED.pop(
-        request.sid,
-        None
-    )
+    if not username:
+        return
 
-    if username:
+    if username in USERS:
+        USERS[username]["online"] = False
 
-        system_message(
-            f"🔴 {username} left {GROUP['name']}."
-        )
+    broadcast_system(f"{username} left MATIA CHAT.")
+    broadcast_users()
 
 
 # =========================================================
-# START SERVER
+# MESSAGE
+# =========================================================
+
+@socketio.on("send_message")
+def handle_message(data):
+    sid = request.sid
+
+    username = CONNECTED.get(sid)
+
+    if not username:
+        return
+
+    text = ""
+
+    if isinstance(data, dict):
+        text = str(data.get("text", "")).strip()
+
+    if not text:
+        return
+
+    text = text[:MAX_MESSAGE]
+
+    user = USERS.get(username, {})
+
+    if user.get("banned"):
+        emit("command_result", {
+            "text": "You are banned."
+        })
+        return
+
+    if user.get("muted"):
+        emit("command_result", {
+            "text": "You are muted."
+        })
+        return
+
+    if GROUP["locked"] and not is_staff(username):
+        emit("command_result", {
+            "text": "The group is locked."
+        })
+        return
+
+    # Commands
+    if text.startswith("/"):
+        handle_command(username, text)
+        return
+
+    message = add_message(username, text)
+    socketio.emit("message", message)
+
+
+# =========================================================
+# COMMAND ENGINE
+# =========================================================
+
+def handle_command(username, text):
+    parts = text.split()
+    command = parts[0].lower()
+    args = parts[1:]
+
+    # -----------------------------------------------------
+    # HELP
+    # -----------------------------------------------------
+
+    if command == "/help":
+        emit_to_user(username, "commands", {
+            "commands": command_help(username)
+        })
+        return
+
+    # -----------------------------------------------------
+    # FUN MENU
+    # -----------------------------------------------------
+
+    if command == "/fun":
+        emit_to_user(username, "command_result", {
+            "text": (
+                "🎮 FUN COMMANDS: "
+                "/coinflip /dice /roll /8ball /joke /rate /ship "
+                "/slap /hug /highfive /dance /spin /rps /trivia "
+                "/quiz /party /fireworks /confetti /rainbow /disco "
+                "/matrix /neon /fire"
+            )
+        })
+        return
+
+    # -----------------------------------------------------
+    # COINFLIP
+    # -----------------------------------------------------
+
+    if command == "/coinflip":
+        result = random.choice(["Heads 🪙", "Tails 🪙"])
+
+        broadcast_system(f"{username} flipped a coin: {result}")
+        return
+
+    # -----------------------------------------------------
+    # DICE
+    # -----------------------------------------------------
+
+    if command in ("/dice", "/roll"):
+        result = random.randint(1, 6)
+
+        broadcast_system(f"🎲 {username} rolled a {result}.")
+        return
+
+    # -----------------------------------------------------
+    # 8 BALL
+    # -----------------------------------------------------
+
+    if command == "/8ball":
+        answers = [
+            "Yes. 🔮",
+            "No. 🔮",
+            "Definitely.",
+            "Probably.",
+            "Ask again later.",
+            "Absolutely not.",
+            "Looks good!",
+            "I wouldn't count on it."
+        ]
+
+        broadcast_system(
+            f"🔮 {username}: {random.choice(answers)}"
+        )
+        return
+
+    # -----------------------------------------------------
+    # JOKE
+    # -----------------------------------------------------
+
+    if command == "/joke":
+        jokes = [
+            "Why did the computer go to the doctor? It had a virus. 😂",
+            "Why was the keyboard tired? It had too many shifts. 😂",
+            "I told my PC a joke... it needed a reboot. 💀",
+            "Why do programmers prefer dark mode? Because light attracts bugs. 🐛"
+        ]
+
+        broadcast_system(random.choice(jokes))
+        return
+
+    # -----------------------------------------------------
+    # RATE
+    # -----------------------------------------------------
+
+    if command == "/rate":
+        target = " ".join(args) if args else username
+        score = random.randint(1, 100)
+
+        broadcast_system(
+            f"⭐ MATIA CHAT rates {target}: {score}/100"
+        )
+        return
+
+    # -----------------------------------------------------
+    # SHIP
+    # -----------------------------------------------------
+
+    if command == "/ship":
+        if len(args) >= 2:
+            a = args[0]
+            b = args[1]
+        else:
+            a = username
+            b = "someone"
+
+        score = random.randint(0, 100)
+
+        broadcast_system(
+            f"💘 {a} + {b} = {score}% compatibility!"
+        )
+        return
+
+    # -----------------------------------------------------
+    # SLAP
+    # -----------------------------------------------------
+
+    if command == "/slap":
+        target = " ".join(args) if args else "the chat"
+
+        broadcast_system(
+            f"👋 {username} slapped {target}!"
+        )
+        return
+
+    # -----------------------------------------------------
+    # HUG
+    # -----------------------------------------------------
+
+    if command == "/hug":
+        target = " ".join(args) if args else "everyone"
+
+        broadcast_system(
+            f"🤗 {username} hugged {target}!"
+        )
+        return
+
+    # -----------------------------------------------------
+    # HIGH FIVE
+    # -----------------------------------------------------
+
+    if command == "/highfive":
+        target = " ".join(args) if args else "everyone"
+
+        broadcast_system(
+            f"✋ {username} gave {target} a HIGH FIVE!"
+        )
+        return
+
+    # -----------------------------------------------------
+    # DANCE
+    # -----------------------------------------------------
+
+    if command == "/dance":
+        broadcast_system(
+            f"🕺 {username} started dancing! 💃"
+        )
+        return
+
+    # -----------------------------------------------------
+    # SPIN
+    # -----------------------------------------------------
+
+    if command == "/spin":
+        broadcast_system(
+            f"🌀 {username} is spinning!"
+        )
+        return
+
+    # -----------------------------------------------------
+    # RPS
+    # -----------------------------------------------------
+
+    if command == "/rps":
+        choices = ["rock 🪨", "paper 📄", "scissors ✂️"]
+        result = random.choice(choices)
+
+        broadcast_system(
+            f"✂️ {username} played RPS: {result}"
+        )
+        return
+
+    # -----------------------------------------------------
+    # TRIVIA
+    # -----------------------------------------------------
+
+    if command == "/trivia":
+        trivia = [
+            "🌍 What is the largest continent? Asia!",
+            "⚽ Which country won the 2022 World Cup? Argentina!",
+            "🪐 Which planet is known as the Red Planet? Mars!",
+            "💻 What does CPU stand for? Central Processing Unit!"
+        ]
+
+        broadcast_system(random.choice(trivia))
+        return
+
+    # -----------------------------------------------------
+    # QUIZ
+    # -----------------------------------------------------
+
+    if command == "/quiz":
+        quizzes = [
+            "🧠 QUIZ: What is 10 × 10? Answer: 100.",
+            "🧠 QUIZ: How many sides does a hexagon have? 6.",
+            "🧠 QUIZ: What planet do we live on? Earth."
+        ]
+
+        broadcast_system(random.choice(quizzes))
+        return
+
+    # -----------------------------------------------------
+    # ONLINE
+    # -----------------------------------------------------
+
+    if command == "/online":
+        names = online_users()
+
+        if names:
+            text_result = "🟢 Online: " + ", ".join(names)
+        else:
+            text_result = "No users online."
+
+        emit_to_user(username, "command_result", {
+            "text": text_result
+        })
+        return
+
+    # -----------------------------------------------------
+    # USERS
+    # -----------------------------------------------------
+
+    if command == "/users":
+        names = list(USERS.keys())
+
+        emit_to_user(username, "command_result", {
+            "text": "👥 Users: " + ", ".join(names)
+        })
+        return
+
+    # -----------------------------------------------------
+    # WHOIS
+    # -----------------------------------------------------
+
+    if command == "/whois":
+        if not args:
+            emit_to_user(username, "command_result", {
+                "text": "Usage: /whois username"
+            })
+            return
+
+        target, user = find_user(args[0])
+
+        if not user:
+            emit_to_user(username, "command_result", {
+                "text": "User not found."
+            })
+            return
+
+        emit_to_user(username, "command_result", {
+            "text": (
+                f"👤 {target} | "
+                f"Role: {user.get('role')} | "
+                f"Online: {'Yes' if target in CONNECTED.values() else 'No'}"
+            )
+        })
+        return
+
+    # -----------------------------------------------------
+    # RULES
+    # -----------------------------------------------------
+
+    if command == "/rules":
+        emit_to_user(username, "command_result", {
+            "text": (
+                "📜 RULES: Be respectful • No spam • "
+                "No harassment • Have fun!"
+            )
+        })
+        return
+
+    # -----------------------------------------------------
+    # TIME
+    # -----------------------------------------------------
+
+    if command == "/time":
+        emit_to_user(username, "command_result", {
+            "text": f"🕐 Server time: {now()}"
+        })
+        return
+
+    # -----------------------------------------------------
+    # GLOBAL EVENTS
+    # -----------------------------------------------------
+
+    event_commands = {
+        "/rainbow": "rainbow",
+        "/disco": "disco",
+        "/matrix": "matrix",
+        "/party": "party",
+        "/neon": "neon",
+        "/fire": "fire",
+        "/fireworks": "fireworks",
+        "/confetti": "confetti"
+    }
+
+    if command in event_commands:
+        effect = event_commands[command]
+
+        socketio.emit("event", {
+            "effect": effect,
+            "by": username
+        })
+
+        broadcast_system(
+            f"✨ {username} activated {effect.upper()}!"
+        )
+        return
+
+    # -----------------------------------------------------
+    # /event
+    # -----------------------------------------------------
+
+    if command == "/event":
+        if not args:
+            emit_to_user(username, "command_result", {
+                "text": "Usage: /event rainbow"
+            })
+            return
+
+        effect = args[0].lower()
+
+        allowed = [
+            "rainbow",
+            "disco",
+            "matrix",
+            "party",
+            "neon",
+            "fire",
+            "fireworks",
+            "confetti"
+        ]
+
+        if effect not in allowed:
+            emit_to_user(username, "command_result", {
+                "text": "Unknown event."
+            })
+            return
+
+        socketio.emit("event", {
+            "effect": effect,
+            "by": username
+        })
+
+        broadcast_system(
+            f"✨ {username} activated {effect.upper()}!"
+        )
+        return
+
+    # =====================================================
+    # STAFF COMMANDS
+    # =====================================================
+
+    if command in (
+        "/ban",
+        "/unban",
+        "/kick",
+        "/mute",
+        "/unmute"
+    ):
+        if not is_staff(username):
+            emit_to_user(username, "command_result", {
+                "text": "❌ You don't have permission."
+            })
+            return
+
+        if not args:
+            emit_to_user(username, "command_result", {
+                "text": f"Usage: {command} username"
+            })
+            return
+
+        target, user = find_user(args[0])
+
+        if not user:
+            emit_to_user(username, "command_result", {
+                "text": "❌ User not found."
+            })
+            return
+
+        if target == username:
+            emit_to_user(username, "command_result", {
+                "text": "❌ You cannot target yourself."
+            })
+            return
+
+        # BAN
+        if command == "/ban":
+            user["banned"] = True
+
+            kick_user(target)
+
+            broadcast_system(
+                f"🔨 {target} was banned by {username}."
+            )
+
+            broadcast_users()
+            return
+
+        # UNBAN
+        if command == "/unban":
+            user["banned"] = False
+
+            broadcast_system(
+                f"🔓 {target} was unbanned by {username}."
+            )
+
+            return
+
+        # KICK
+        if command == "/kick":
+            kick_user(target)
+
+            broadcast_system(
+                f"👢 {target} was kicked by {username}."
+            )
+
+            broadcast_users()
+            return
+
+        # MUTE
+        if command == "/mute":
+            user["muted"] = True
+
+            broadcast_system(
+                f"🔇 {target} was muted by {username}."
+            )
+
+            return
+
+        # UNMUTE
+        if command == "/unmute":
+            user["muted"] = False
+
+            broadcast_system(
+                f"🔊 {target} was unmuted by {username}."
+            )
+
+            return
+
+    # =====================================================
+    # OWNER COMMANDS
+    # =====================================================
+
+    if command in (
+        "/promote",
+        "/demote",
+        "/announce",
+        "/clear",
+        "/lock",
+        "/unlock",
+        "/rename"
+    ):
+        if not is_owner(username):
+            emit_to_user(username, "command_result", {
+                "text": "❌ Owner only."
+            })
+            return
+
+        # PROMOTE
+        if command == "/promote":
+            if not args:
+                emit_to_user(username, "command_result", {
+                    "text": "Usage: /promote username"
+                })
+                return
+
+            target, user = find_user(args[0])
+
+            if not user:
+                emit_to_user(username, "command_result", {
+                    "text": "User not found."
+                })
+                return
+
+            user["role"] = "mod"
+
+            broadcast_system(
+                f"🛡️ {target} is now a moderator."
+            )
+
+            broadcast_users()
+            return
+
+        # DEMOTE
+        if command == "/demote":
+            if not args:
+                emit_to_user(username, "command_result", {
+                    "text": "Usage: /demote username"
+                })
+                return
+
+            target, user = find_user(args[0])
+
+            if not user:
+                emit_to_user(username, "command_result", {
+                    "text": "User not found."
+                })
+                return
+
+            if target == username:
+                emit_to_user(username, "command_result", {
+                    "text": "❌ You cannot demote yourself."
+                })
+                return
+
+            user["role"] = "member"
+
+            broadcast_system(
+                f"⬇️ {target} was demoted to member."
+            )
+
+            broadcast_users()
+            return
+
+        # ANNOUNCE
+        if command == "/announce":
+            announcement = " ".join(args).strip()
+
+            if not announcement:
+                emit_to_user(username, "command_result", {
+                    "text": "Usage: /announce message"
+                })
+                return
+
+            socketio.emit("announcement", {
+                "text": announcement,
+                "by": username
+            })
+
+            broadcast_system(
+                f"📢 {username}: {announcement}"
+            )
+            return
+
+        # CLEAR
+        if command == "/clear":
+            MESSAGES.clear()
+
+            socketio.emit("clear_chat")
+
+            broadcast_system(
+                f"🧹 Chat cleared by {username}."
+            )
+            return
+
+        # LOCK
+        if command == "/lock":
+            GROUP["locked"] = True
+
+            socketio.emit("group_update", {
+                "group": GROUP
+            })
+
+            broadcast_system(
+                f"🔒 Group locked by {username}."
+            )
+            return
+
+        # UNLOCK
+        if command == "/unlock":
+            GROUP["locked"] = False
+
+            socketio.emit("group_update", {
+                "group": GROUP
+            })
+
+            broadcast_system(
+                f"🔓 Group unlocked by {username}."
+            )
+            return
+
+        # RENAME
+        if command == "/rename":
+            new_name = " ".join(args).strip()
+
+            if not new_name:
+                emit_to_user(username, "command_result", {
+                    "text": "Usage: /rename new name"
+                })
+                return
+
+            GROUP["name"] = new_name[:40]
+
+            socketio.emit("group_update", {
+                "group": GROUP
+            })
+
+            broadcast_system(
+                f"✏️ Group renamed to {GROUP['name']}."
+            )
+            return
+
+    # Unknown command
+    emit_to_user(username, "command_result", {
+        "text": f"❓ Unknown command: {command}. Use /help."
+    })
+
+
+# =========================================================
+# UTILITY FUNCTIONS
+# =========================================================
+
+def emit_to_user(username, event, data):
+    for sid, connected_username in CONNECTED.items():
+        if connected_username == username:
+            socketio.emit(event, data, to=sid)
+            return
+
+
+def kick_user(username):
+    target_sid = None
+
+    for sid, connected_username in CONNECTED.items():
+        if connected_username == username:
+            target_sid = sid
+            break
+
+    if target_sid:
+        socketio.emit("force_disconnect", {
+            "reason": "You were removed from MATIA CHAT."
+        }, to=target_sid)
+
+        socketio.server.disconnect(target_sid)
+
+
+# =========================================================
+# START
 # =========================================================
 
 if __name__ == "__main__":
-
-    print()
-    print("========================================")
-    print("          MATIA CHAT SERVER")
-    print("========================================")
-    print()
-    print(" Login: USERNAME ONLY")
-    print(" First user: OWNER 👑")
-    print(" Other users: MEMBER")
-    print()
-    print(" Local:")
-    print(" http://127.0.0.1:5000")
-    print()
-    print(" Render:")
-    print(" Use gunicorn + eventlet")
-    print()
-    print("========================================")
+    port = int(os.environ.get("PORT", 5000))
 
     socketio.run(
         app,
         host="0.0.0.0",
-        port=5000,
-        debug=False
+        port=port
     )
