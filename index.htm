@@ -1,0 +1,1662 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MATIA CHAT</title>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#080b10;
+    color:#fff;
+    height:100vh;
+    overflow:hidden;
+}
+
+/* ================= LOGIN ================= */
+
+#loginScreen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(circle at top,#182b45,#080b10 65%);
+    z-index:9999;
+}
+
+.loginBox{
+    width:390px;
+    max-width:92%;
+    padding:38px;
+    text-align:center;
+    border-radius:24px;
+    background:rgba(14,20,30,.97);
+    border:1px solid #29384c;
+    box-shadow:0 0 70px rgba(0,150,255,.2);
+}
+
+.logo{
+    width:78px;
+    height:78px;
+    margin:auto;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:38px;
+    background:linear-gradient(135deg,#00aaff,#772cff);
+    box-shadow:0 0 35px rgba(0,170,255,.4);
+}
+
+.loginBox h1{
+    margin-top:20px;
+    font-size:30px;
+}
+
+.loginBox p{
+    margin:10px 0 25px;
+    color:#8997aa;
+}
+
+.loginBox input{
+    width:100%;
+    padding:15px;
+    border-radius:12px;
+    border:1px solid #2b394c;
+    background:#0a1018;
+    color:white;
+    outline:none;
+    font-size:16px;
+}
+
+.loginBox input:focus{
+    border-color:#00aaff;
+    box-shadow:0 0 15px rgba(0,170,255,.2);
+}
+
+.loginBox button{
+    width:100%;
+    margin-top:14px;
+    padding:15px;
+    border:0;
+    border-radius:12px;
+    background:linear-gradient(135deg,#008cff,#722cff);
+    color:#fff;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.loginBox button:hover{
+    filter:brightness(1.15);
+}
+
+#error{
+    color:#ff6070;
+    min-height:20px;
+    margin-top:14px;
+}
+
+/* ================= APP ================= */
+
+#app{
+    display:none;
+    height:100vh;
+}
+
+.layout{
+    display:flex;
+    height:100%;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:330px;
+    background:#0d121a;
+    border-right:1px solid #202a38;
+    display:flex;
+    flex-direction:column;
+}
+
+.sideTop{
+    padding:18px;
+    border-bottom:1px solid #202a38;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.brand h2{
+    font-size:20px;
+}
+
+.iconBtn{
+    width:39px;
+    height:39px;
+    border:0;
+    border-radius:10px;
+    background:#161f2b;
+    color:#fff;
+    cursor:pointer;
+    font-size:18px;
+}
+
+.iconBtn:hover{
+    background:#243247;
+}
+
+.search{
+    margin-top:15px;
+}
+
+.search input{
+    width:100%;
+    padding:12px;
+    border-radius:11px;
+    border:1px solid #283445;
+    background:#151c27;
+    color:#fff;
+    outline:none;
+}
+
+.profile{
+    padding:17px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid #202a38;
+}
+
+.avatar{
+    width:46px;
+    height:46px;
+    flex-shrink:0;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#00aaff,#792dff);
+    font-weight:bold;
+    font-size:19px;
+}
+
+.profileInfo{
+    min-width:0;
+}
+
+.profileName{
+    font-weight:bold;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.role{
+    margin-top:3px;
+    font-size:11px;
+    color:#8190a4;
+}
+
+.chats{
+    flex:1;
+    padding:10px;
+    overflow:auto;
+}
+
+.chatItem{
+    padding:14px;
+    border-radius:13px;
+    background:#121923;
+    border:1px solid #202b3a;
+}
+
+.chatAvatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    float:left;
+    margin-right:12px;
+    background:linear-gradient(135deg,#00aaff,#7b2cff);
+}
+
+.chatTitle{
+    font-weight:bold;
+}
+
+.chatStatus{
+    margin-top:5px;
+    font-size:12px;
+    color:#718097;
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+}
+
+.chatHeader{
+    height:75px;
+    padding:12px 20px;
+    display:flex;
+    align-items:center;
+    gap:13px;
+    background:#0e141d;
+    border-bottom:1px solid #202a38;
+}
+
+.groupAvatar{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#00aaff,#712cff);
+    font-size:22px;
+}
+
+.groupInfo{
+    flex:1;
+}
+
+.groupName{
+    font-size:16px;
+    font-weight:bold;
+}
+
+.groupStatus{
+    margin-top:3px;
+    color:#7d8a9d;
+    font-size:12px;
+}
+
+/* ================= MESSAGES ================= */
+
+.messages{
+    flex:1;
+    overflow-y:auto;
+    padding:22px;
+    background:
+        radial-gradient(circle at 50% 0%,rgba(0,120,255,.06),transparent 40%),
+        #080c12;
+}
+
+.message{
+    display:flex;
+    margin-bottom:13px;
+}
+
+.message.me{
+    justify-content:flex-end;
+}
+
+.bubble{
+    max-width:70%;
+    padding:11px 14px;
+    border-radius:15px;
+    background:#151e2a;
+    border:1px solid #222e3e;
+}
+
+.message.me .bubble{
+    background:#075e54;
+    border-color:#087365;
+}
+
+.messageUser{
+    margin-bottom:4px;
+    color:#4db7ff;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.messageText{
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.messageTime{
+    margin-top:5px;
+    text-align:right;
+    color:#8290a2;
+    font-size:10px;
+}
+
+.system{
+    margin:12px 0;
+    text-align:center;
+    color:#77869b;
+    font-size:12px;
+}
+
+.command{
+    max-width:80%;
+    margin:10px auto;
+    padding:13px;
+    border-radius:12px;
+    background:#101722;
+    border:1px solid #26354a;
+    color:#aebbd0;
+    white-space:pre-wrap;
+}
+
+/* ================= INPUT ================= */
+
+.inputArea{
+    padding:14px;
+    display:flex;
+    gap:10px;
+    background:#0d121a;
+    border-top:1px solid #202a38;
+}
+
+.inputArea input{
+    flex:1;
+    padding:14px;
+    border-radius:13px;
+    border:1px solid #283547;
+    background:#151d28;
+    color:white;
+    outline:none;
+    font-size:15px;
+}
+
+.inputArea input:focus{
+    border-color:#009cff;
+}
+
+.send{
+    width:54px;
+    border:0;
+    border-radius:13px;
+    background:#008cff;
+    color:white;
+    cursor:pointer;
+    font-size:20px;
+}
+
+.send:hover{
+    filter:brightness(1.15);
+}
+
+/* ================= SETTINGS ================= */
+
+#settingsPanel{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(8px);
+    z-index:5000;
+}
+
+.settingsBox{
+    width:440px;
+    max-width:92%;
+    padding:25px;
+    border-radius:22px;
+    background:#101722;
+    border:1px solid #29384c;
+    box-shadow:0 20px 80px rgba(0,0,0,.65);
+}
+
+.settingsHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.settingsHeader h2{
+    font-size:22px;
+}
+
+.closeSettings{
+    width:36px;
+    height:36px;
+    border:0;
+    border-radius:9px;
+    background:#202b3a;
+    color:white;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.setting{
+    padding:16px;
+    margin-top:10px;
+    border-radius:13px;
+    background:#151e2a;
+    border:1px solid #222e3e;
+}
+
+.settingTitle{
+    font-weight:bold;
+}
+
+.settingDesc{
+    margin-top:5px;
+    color:#78869a;
+    font-size:12px;
+}
+
+.setting button{
+    margin-top:11px;
+    padding:9px 13px;
+    border:0;
+    border-radius:9px;
+    background:#26364b;
+    color:white;
+    cursor:pointer;
+}
+
+.setting button:hover{
+    background:#30445e;
+}
+
+/* ================= ANNOUNCEMENT ================= */
+
+#announcement{
+    position:fixed;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    display:none;
+    z-index:6000;
+    max-width:90%;
+    padding:14px 22px;
+    border-radius:14px;
+    background:#151e2b;
+    border:1px solid #3a4d67;
+    box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+
+/* ================= EVENTS ================= */
+
+#eventOverlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    pointer-events:none;
+    z-index:4000;
+}
+
+#eventText{
+    position:absolute;
+    top:43%;
+    width:100%;
+    text-align:center;
+    font-size:55px;
+    font-weight:900;
+    text-shadow:0 0 25px white;
+}
+
+.rainbow{
+    display:block !important;
+    background:linear-gradient(
+        90deg,
+        red,
+        orange,
+        yellow,
+        green,
+        cyan,
+        blue,
+        violet
+    );
+    opacity:.18;
+    animation:hue 1.5s linear infinite;
+}
+
+.disco{
+    display:block !important;
+    background:radial-gradient(
+        circle,
+        #ff00aa,
+        transparent 45%
+    );
+    opacity:.28;
+    animation:disco .35s infinite alternate;
+}
+
+.matrix{
+    display:block !important;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(0,255,70,.16) 0px,
+            rgba(0,255,70,.16) 2px,
+            transparent 2px,
+            transparent 8px
+        );
+    animation:matrix 1s linear infinite;
+}
+
+.neon{
+    display:block !important;
+    box-shadow:inset 0 0 130px #00ffff;
+    animation:pulse 1s infinite alternate;
+}
+
+.fire{
+    display:block !important;
+    box-shadow:inset 0 -100px 160px #ff3500;
+    animation:pulse .3s infinite alternate;
+}
+
+.party{
+    display:block !important;
+    background:
+        radial-gradient(circle at 20% 30%,#ff0,transparent 10%),
+        radial-gradient(circle at 80% 70%,#0ff,transparent 10%),
+        radial-gradient(circle at 50% 50%,#f0f,transparent 10%);
+    opacity:.28;
+    animation:party .5s infinite alternate;
+}
+
+@keyframes hue{
+    from{filter:hue-rotate(0deg)}
+    to{filter:hue-rotate(360deg)}
+}
+
+@keyframes disco{
+    from{
+        transform:scale(1);
+        filter:hue-rotate(0deg);
+    }
+    to{
+        transform:scale(1.15);
+        filter:hue-rotate(180deg);
+    }
+}
+
+@keyframes matrix{
+    from{background-position:0 0}
+    to{background-position:80px 200px}
+}
+
+@keyframes pulse{
+    from{opacity:.08}
+    to{opacity:.35}
+}
+
+@keyframes party{
+    from{transform:scale(1)}
+    to{transform:scale(1.1)}
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:700px){
+
+    .sidebar{
+        width:75px;
+    }
+
+    .brand h2,
+    .search,
+    .profileInfo,
+    .chatTitle,
+    .chatStatus{
+        display:none;
+    }
+
+    .profile{
+        justify-content:center;
+    }
+
+    .chatItem{
+        height:65px;
+        text-align:center;
+    }
+
+    .chatAvatar{
+        float:none;
+        margin:auto;
+    }
+
+    .bubble{
+        max-width:85%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+LOGIN
+===================================================== -->
+
+<div id="loginScreen">
+
+    <div class="loginBox">
+
+        <div class="logo">💬</div>
+
+        <h1>MATIA CHAT</h1>
+
+        <p>Enter your username to continue</p>
+
+        <input
+            id="username"
+            type="text"
+            maxlength="20"
+            placeholder="Username"
+            autocomplete="off"
+        >
+
+        <button onclick="login()">
+            ENTER CHAT 🚀
+        </button>
+
+        <div id="error"></div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+APP
+===================================================== -->
+
+<div id="app">
+
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sideTop">
+
+                <div class="brand">
+
+                    <h2>💬 MATIA</h2>
+
+                    <button
+                        class="iconBtn"
+                        onclick="openSettings()"
+                    >
+                        ⚙️
+                    </button>
+
+                </div>
+
+                <div class="search">
+
+                    <input
+                        id="searchInput"
+                        type="text"
+                        placeholder="Search messages..."
+                        oninput="searchMessages()"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="profile">
+
+                <div
+                    class="avatar"
+                    id="myAvatar"
+                >
+                    M
+                </div>
+
+                <div class="profileInfo">
+
+                    <div
+                        class="profileName"
+                        id="myName"
+                    >
+                        User
+                    </div>
+
+                    <div
+                        class="role"
+                        id="myRole"
+                    >
+                        MEMBER
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="chats">
+
+                <div class="chatItem">
+
+                    <div class="chatAvatar">
+                        💬
+                    </div>
+
+                    <div class="chatTitle">
+                        <span id="sideGroupName">
+                            MATIA CHAT
+                        </span>
+                    </div>
+
+                    <div class="chatStatus">
+                        Realtime group chat
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+
+        <main class="main">
+
+            <header class="chatHeader">
+
+                <div class="groupAvatar">
+                    💬
+                </div>
+
+                <div class="groupInfo">
+
+                    <div
+                        class="groupName"
+                        id="groupName"
+                    >
+                        MATIA CHAT
+                    </div>
+
+                    <div
+                        class="groupStatus"
+                        id="groupStatus"
+                    >
+                        🟢 Realtime chat
+                    </div>
+
+                </div>
+
+                <button
+                    class="iconBtn"
+                    onclick="openSettings()"
+                >
+                    ⚙️
+                </button>
+
+            </header>
+
+
+            <section
+                class="messages"
+                id="messages"
+            ></section>
+
+
+            <div class="inputArea">
+
+                <input
+                    id="messageInput"
+                    type="text"
+                    placeholder="Type a message..."
+                    autocomplete="off"
+                >
+
+                <button
+                    class="send"
+                    onclick="sendMessage()"
+                >
+                    ➤
+                </button>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+SETTINGS
+===================================================== -->
+
+<div id="settingsPanel">
+
+    <div class="settingsBox">
+
+        <div class="settingsHeader">
+
+            <h2>⚙️ Settings</h2>
+
+            <button
+                class="closeSettings"
+                onclick="closeSettings()"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="setting">
+
+            <div class="settingTitle">
+                👤 Account
+            </div>
+
+            <div
+                class="settingDesc"
+                id="settingsUser"
+            >
+                Username
+            </div>
+
+        </div>
+
+
+        <div class="setting">
+
+            <div class="settingTitle">
+                🛡️ Role
+            </div>
+
+            <div
+                class="settingDesc"
+                id="settingsRole"
+            >
+                MEMBER
+            </div>
+
+        </div>
+
+
+        <div class="setting">
+
+            <div class="settingTitle">
+                🎨 Interface
+            </div>
+
+            <div class="settingDesc">
+                Dark MATIA CHAT interface
+            </div>
+
+            <button onclick="testEffect()">
+                ✨ Test Effect
+            </button>
+
+        </div>
+
+
+        <div class="setting">
+
+            <div class="settingTitle">
+                📚 Commands
+            </div>
+
+            <div class="settingDesc">
+                Type /help inside the chat.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+ANNOUNCEMENT
+===================================================== -->
+
+<div id="announcement"></div>
+
+
+<!-- =====================================================
+EVENT OVERLAY
+===================================================== -->
+
+<div id="eventOverlay">
+
+    <div id="eventText"></div>
+
+</div>
+
+
+<script>
+
+const socket = io();
+
+let currentUser = "";
+let currentRole = "";
+let messagesCache = [];
+
+
+/* =====================================================
+LOGIN
+===================================================== */
+
+function login(){
+
+    const input =
+        document.getElementById("username");
+
+    const error =
+        document.getElementById("error");
+
+    const username =
+        input.value.trim();
+
+    error.textContent = "";
+
+    if(!username){
+
+        error.textContent =
+            "Please enter a username.";
+
+        return;
+    }
+
+    socket.emit(
+        "login",
+        {
+            username: username
+        }
+    );
+}
+
+
+document
+.getElementById("username")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+
+            event.preventDefault();
+
+            login();
+        }
+
+    }
+);
+
+
+/* =====================================================
+LOGIN RESULT
+===================================================== */
+
+socket.on(
+    "login_result",
+    function(data){
+
+        if(!data.ok){
+
+            document
+                .getElementById("error")
+                .textContent =
+                data.error;
+
+            return;
+        }
+
+        currentUser =
+            data.username;
+
+        currentRole =
+            data.role;
+
+        document
+            .getElementById("loginScreen")
+            .style.display =
+            "none";
+
+        document
+            .getElementById("app")
+            .style.display =
+            "block";
+
+        document
+            .getElementById("myName")
+            .textContent =
+            currentUser;
+
+        document
+            .getElementById("myRole")
+            .textContent =
+            currentRole.toUpperCase();
+
+        document
+            .getElementById("settingsUser")
+            .textContent =
+            currentUser;
+
+        document
+            .getElementById("settingsRole")
+            .textContent =
+            currentRole.toUpperCase();
+
+        document
+            .getElementById("myAvatar")
+            .textContent =
+            currentUser
+                .charAt(0)
+                .toUpperCase();
+
+        updateGroup(data.group);
+
+        messagesCache =
+            data.messages || [];
+
+        renderMessages();
+
+        document
+            .getElementById("messageInput")
+            .focus();
+    }
+);
+
+
+/* =====================================================
+SEND MESSAGE
+===================================================== */
+
+function sendMessage(){
+
+    const input =
+        document.getElementById(
+            "messageInput"
+        );
+
+    const text =
+        input.value.trim();
+
+    if(!text)
+        return;
+
+    socket.emit(
+        "message",
+        {
+            text: text
+        }
+    );
+
+    input.value = "";
+
+    input.focus();
+}
+
+
+document
+.getElementById("messageInput")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+
+            event.preventDefault();
+
+            sendMessage();
+        }
+    }
+);
+
+
+/* =====================================================
+NEW MESSAGE
+===================================================== */
+
+socket.on(
+    "new_message",
+    function(msg){
+
+        messagesCache.push(msg);
+
+        renderMessages();
+    }
+);
+
+
+/* =====================================================
+RENDER MESSAGES
+===================================================== */
+
+function renderMessages(){
+
+    const container =
+        document.getElementById(
+            "messages"
+        );
+
+    container.innerHTML = "";
+
+    messagesCache.forEach(
+        function(msg){
+
+            const wrapper =
+                document.createElement(
+                    "div"
+                );
+
+            wrapper.className =
+                "message " +
+                (
+                    msg.user === currentUser
+                    ? "me"
+                    : ""
+                );
+
+            const bubble =
+                document.createElement(
+                    "div"
+                );
+
+            bubble.className =
+                "bubble";
+
+            const user =
+                document.createElement(
+                    "div"
+                );
+
+            user.className =
+                "messageUser";
+
+            user.textContent =
+                msg.user;
+
+            const text =
+                document.createElement(
+                    "div"
+                );
+
+            text.className =
+                "messageText";
+
+            text.textContent =
+                msg.text;
+
+            const time =
+                document.createElement(
+                    "div"
+                );
+
+            time.className =
+                "messageTime";
+
+            time.textContent =
+                msg.time;
+
+            bubble.appendChild(user);
+            bubble.appendChild(text);
+            bubble.appendChild(time);
+
+            wrapper.appendChild(bubble);
+
+            container.appendChild(wrapper);
+        }
+    );
+
+    container.scrollTop =
+        container.scrollHeight;
+}
+
+
+/* =====================================================
+SYSTEM MESSAGE
+===================================================== */
+
+socket.on(
+    "system",
+    function(data){
+
+        const container =
+            document.getElementById(
+                "messages"
+            );
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+        div.className = "system";
+
+        div.textContent =
+            data.text;
+
+        container.appendChild(div);
+
+        container.scrollTop =
+            container.scrollHeight;
+    }
+);
+
+
+/* =====================================================
+COMMAND RESULT
+===================================================== */
+
+socket.on(
+    "command_result",
+    function(data){
+
+        const container =
+            document.getElementById(
+                "messages"
+            );
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+        div.className =
+            "command";
+
+        div.textContent =
+            data.text;
+
+        container.appendChild(div);
+
+        container.scrollTop =
+            container.scrollHeight;
+    }
+);
+
+
+/* =====================================================
+ANNOUNCEMENT
+===================================================== */
+
+socket.on(
+    "announcement",
+    function(data){
+
+        const box =
+            document.getElementById(
+                "announcement"
+            );
+
+        box.textContent =
+            "📢 " +
+            data.by +
+            ": " +
+            data.text;
+
+        box.style.display =
+            "block";
+
+        setTimeout(
+            function(){
+
+                box.style.display =
+                    "none";
+
+            },
+            5000
+        );
+    }
+);
+
+
+/* =====================================================
+GROUP UPDATE
+===================================================== */
+
+socket.on(
+    "group_update",
+    function(group){
+
+        updateGroup(group);
+    }
+);
+
+
+function updateGroup(group){
+
+    document
+        .getElementById("groupName")
+        .textContent =
+        group.name;
+
+    document
+        .getElementById("sideGroupName")
+        .textContent =
+        group.name;
+
+    document
+        .getElementById("groupStatus")
+        .textContent =
+        group.locked
+        ? "🔒 Chat locked"
+        : "🟢 Realtime chat";
+}
+
+
+/* =====================================================
+CLEAR
+===================================================== */
+
+socket.on(
+    "clear_chat",
+    function(){
+
+        messagesCache = [];
+
+        renderMessages();
+    }
+);
+
+
+/* =====================================================
+FORCE DISCONNECT
+===================================================== */
+
+socket.on(
+    "force_disconnect",
+    function(data){
+
+        alert(data.reason);
+
+        location.reload();
+    }
+);
+
+
+/* =====================================================
+EVENTS
+===================================================== */
+
+socket.on(
+    "event",
+    function(data){
+
+        runEvent(
+            data.name,
+            data.by
+        );
+    }
+);
+
+
+function runEvent(name, by){
+
+    const overlay =
+        document.getElementById(
+            "eventOverlay"
+        );
+
+    const text =
+        document.getElementById(
+            "eventText"
+        );
+
+    overlay.className = "";
+
+    void overlay.offsetWidth;
+
+    overlay.classList.add(name);
+
+    const titles = {
+
+        rainbow:
+            "🌈 RAINBOW!",
+
+        disco:
+            "🪩 DISCO!",
+
+        matrix:
+            "🟢 MATRIX!",
+
+        party:
+            "🎉 PARTY!",
+
+        neon:
+            "💜 NEON!",
+
+        fire:
+            "🔥 FIRE!"
+    };
+
+    text.textContent =
+        titles[name] ||
+        "🎉 EVENT!";
+
+    overlay.style.display =
+        "block";
+
+    setTimeout(
+        function(){
+
+            overlay.style.display =
+                "none";
+
+            overlay.className = "";
+
+        },
+        4500
+    );
+}
+
+
+/* =====================================================
+SETTINGS
+===================================================== */
+
+function openSettings(){
+
+    document
+        .getElementById(
+            "settingsPanel"
+        )
+        .style.display =
+        "flex";
+}
+
+
+function closeSettings(){
+
+    document
+        .getElementById(
+            "settingsPanel"
+        )
+        .style.display =
+        "none";
+}
+
+
+document
+.getElementById("settingsPanel")
+.addEventListener(
+    "click",
+    function(event){
+
+        if(event.target === this){
+
+            closeSettings();
+        }
+    }
+);
+
+
+/* =====================================================
+TEST EFFECT
+===================================================== */
+
+function testEffect(){
+
+    const effects = [
+        "rainbow",
+        "disco",
+        "matrix",
+        "party",
+        "neon",
+        "fire"
+    ];
+
+    const effect =
+        effects[
+            Math.floor(
+                Math.random() *
+                effects.length
+            )
+        ];
+
+    runEvent(
+        effect,
+        currentUser
+    );
+}
+
+
+/* =====================================================
+SEARCH
+===================================================== */
+
+function searchMessages(){
+
+    const query =
+        document
+            .getElementById(
+                "searchInput"
+            )
+            .value
+            .toLowerCase()
+            .trim();
+
+    const container =
+        document.getElementById(
+            "messages"
+        );
+
+    container.innerHTML = "";
+
+    messagesCache
+        .filter(
+            function(msg){
+
+                return (
+                    msg.user
+                        .toLowerCase()
+                        .includes(query)
+                    ||
+                    msg.text
+                        .toLowerCase()
+                        .includes(query)
+                );
+            }
+        )
+        .forEach(
+            function(msg){
+
+                const wrapper =
+                    document.createElement(
+                        "div"
+                    );
+
+                wrapper.className =
+                    "message " +
+                    (
+                        msg.user === currentUser
+                        ? "me"
+                        : ""
+                    );
+
+                const bubble =
+                    document.createElement(
+                        "div"
+                    );
+
+                bubble.className =
+                    "bubble";
+
+                const user =
+                    document.createElement(
+                        "div"
+                    );
+
+                user.className =
+                    "messageUser";
+
+                user.textContent =
+                    msg.user;
+
+                const text =
+                    document.createElement(
+                        "div"
+                    );
+
+                text.className =
+                    "messageText";
+
+                text.textContent =
+                    msg.text;
+
+                const time =
+                    document.createElement(
+                        "div"
+                    );
+
+                time.className =
+                    "messageTime";
+
+                time.textContent =
+                    msg.time;
+
+                bubble.appendChild(user);
+                bubble.appendChild(text);
+                bubble.appendChild(time);
+
+                wrapper.appendChild(bubble);
+
+                container.appendChild(wrapper);
+            }
+        );
+}
+
+
+/* =====================================================
+START
+===================================================== */
+
+console.log(
+    "🔥 MATIA CHAT loaded successfully."
+);
+
+</script>
+
+</body>
+</html>
+```
