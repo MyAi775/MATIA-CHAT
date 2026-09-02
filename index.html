@@ -1,2437 +1,1579 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MATIA CHAT</title>
-
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-
-html,body{
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    font-family:Arial,Helvetica,sans-serif;
-    background:#070d11;
-    color:#e9edef;
-}
-
-button,input{
-    font:inherit;
-}
-
-button{
-    cursor:pointer;
-}
-
-.hidden{
-    display:none!important;
-}
-
-/* ================= LOGIN ================= */
-
-#loginScreen{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:
-        radial-gradient(circle at top,#174536 0,#0a1713 38%,#05090b 100%);
-}
-
-.loginCard{
-    width:min(430px,92vw);
-    padding:36px;
-    border:1px solid #29433a;
-    border-radius:24px;
-    background:#0f191e;
-    box-shadow:0 30px 100px rgba(0,0,0,.7);
-    text-align:center;
-}
-
-.logo{
-    width:82px;
-    height:82px;
-    margin:0 auto 18px;
-    border-radius:24px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:35px;
-    font-weight:900;
-    color:#fff;
-    background:linear-gradient(135deg,#00a884,#00745a);
-    box-shadow:0 15px 45px rgba(0,168,132,.25);
-}
-
-.loginCard h1{
-    font-size:34px;
-    margin-bottom:8px;
-}
-
-.loginCard p{
-    color:#8c9a9f;
-    margin-bottom:24px;
-}
-
-#username{
-    width:100%;
-    padding:15px 16px;
-    margin-bottom:12px;
-    border:1px solid #2e4047;
-    border-radius:13px;
-    outline:none;
-    background:#182228;
-    color:#fff;
-}
-
-#username:focus{
-    border-color:#00a884;
-}
-
-#connectBtn{
-    width:100%;
-    padding:15px;
-    border:0;
-    border-radius:13px;
-    background:#00a884;
-    color:#fff;
-    font-weight:900;
-    transition:.15s;
-}
-
-#connectBtn:hover{
-    background:#05bc97;
-}
-
-/* ================= APP ================= */
-
-#app{
-    width:100%;
-    height:100%;
-    display:flex;
-}
-
-/* ================= SIDEBAR ================= */
-
-.sidebar{
-    width:330px;
-    min-width:330px;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    background:#111b21;
-    border-right:1px solid #27333a;
-}
-
-.sideTop{
-    padding:15px;
-    background:#202c33;
-}
-
-.sideBrand{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:13px;
-}
-
-.sideBrand strong{
-    font-size:21px;
-}
-
-.sideButtons{
-    display:flex;
-    gap:6px;
-}
-
-.iconBtn{
-    width:39px;
-    height:39px;
-    border:0;
-    border-radius:50%;
-    background:#17242a;
-    color:#fff;
-}
-
-.iconBtn:hover{
-    background:#293940;
-}
-
-.searchBox{
-    width:100%;
-    padding:11px 13px;
-    border:1px solid #2a3b42;
-    border-radius:11px;
-    outline:none;
-    background:#111b21;
-    color:#fff;
-}
-
-.sectionTitle{
-    padding:13px 16px 8px;
-    color:#7f8c91;
-    font-size:11px;
-    font-weight:900;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-}
-
-.groupList,
-.userList{
-    overflow:auto;
-}
-
-.groupItem,
-.userItem{
-    display:flex;
-    align-items:center;
-    gap:11px;
-    padding:11px 14px;
-    border-bottom:1px solid rgba(255,255,255,.025);
-    cursor:pointer;
-}
-
-.groupItem:hover,
-.userItem:hover{
-    background:#202c33;
-}
-
-.groupItem.active{
-    background:#26353c;
-}
-
-.avatar{
-    width:44px;
-    height:44px;
-    min-width:44px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#00a884;
-    color:#fff;
-    font-weight:900;
-}
-
-.userMeta{
-    flex:1;
-    min-width:0;
-}
-
-.userName{
-    font-weight:800;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.userRole{
-    margin-top:3px;
-    color:#89969b;
-    font-size:12px;
-}
-
-.roleOwner{
-    color:#ffd166!important;
-}
-
-.roleMod{
-    color:#5dccff!important;
-}
-
-.statusDot{
-    width:9px;
-    height:9px;
-    border-radius:50%;
-    background:#2bd576;
-}
-
-/* ================= CHAT ================= */
-
-.chat{
-    flex:1;
-    min-width:0;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    background:#080d11;
-}
-
-.chatHeader{
-    height:72px;
-    min-height:72px;
-    display:flex;
-    align-items:center;
-    padding:0 17px;
-    background:#202c33;
-    border-bottom:1px solid #27333a;
-}
-
-.headerAvatar{
-    width:46px;
-    height:46px;
-    min-width:46px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-right:12px;
-    border-radius:50%;
-    background:#00a884;
-    color:#fff;
-    font-weight:900;
-}
-
-.headerInfo{
-    flex:1;
-    min-width:0;
-}
-
-.headerTitle{
-    font-size:17px;
-    font-weight:900;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-
-.headerSub{
-    margin-top:4px;
-    font-size:12px;
-    color:#8c9a9f;
-}
-
-.headerActions{
-    display:flex;
-    gap:6px;
-}
-
-/* ================= MESSAGES ================= */
-
-.messages{
-    flex:1;
-    overflow-y:auto;
-    padding:25px 7%;
-    background:
-        radial-gradient(circle at 15% 20%,rgba(0,168,132,.04),transparent 30%),
-        radial-gradient(circle at 85% 80%,rgba(0,168,132,.03),transparent 35%),
-        #080d11;
-}
-
-.empty{
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    color:#7f8c91;
-}
-
-.empty h2{
-    margin-bottom:7px;
-    color:#d6dfe2;
-}
-
-.messageRow{
-    display:flex;
-    margin-bottom:8px;
-}
-
-.messageRow.mine{
-    justify-content:flex-end;
-}
-
-.messageBubble{
-    max-width:min(72%,650px);
-    padding:8px 11px 7px;
-    border-radius:8px;
-    box-shadow:0 1px 2px rgba(0,0,0,.25);
-}
-
-.messageRow:not(.mine) .messageBubble{
-    background:#202c33;
-    border-top-left-radius:2px;
-}
-
-.messageRow.mine .messageBubble{
-    background:#005c4b;
-    border-top-right-radius:2px;
-}
-
-.messageUser{
-    margin-bottom:4px;
-    font-size:12px;
-    font-weight:900;
-    color:#65d6bb;
-}
-
-.messageText{
-    white-space:pre-wrap;
-    word-break:break-word;
-    line-height:1.42;
-}
-
-.messageTime{
-    margin-top:5px;
-    text-align:right;
-    font-size:10px;
-    color:#9aa9ad;
-}
-
-.messageKind{
-    margin-top:2px;
-    font-size:9px;
-    opacity:.65;
-}
-
-/* ================= COMPOSER ================= */
-
-.composer{
-    min-height:68px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:11px 16px;
-    background:#202c33;
-    border-top:1px solid #27333a;
-}
-
-#messageInput{
-    flex:1;
-    min-width:0;
-    padding:13px 17px;
-    border:0;
-    outline:none;
-    border-radius:24px;
-    background:#2a3941;
-    color:#fff;
-}
-
-#sendBtn{
-    width:47px;
-    height:47px;
-    border:0;
-    border-radius:50%;
-    background:#00a884;
-    color:#fff;
-    font-size:18px;
-}
-
-/* ================= MODAL ================= */
-
-.modalBack{
-    position:fixed;
-    inset:0;
-    z-index:1000;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.68);
-}
-
-.modal{
-    width:min(540px,92vw);
-    max-height:86vh;
-    overflow:auto;
-    border:1px solid #293940;
-    border-radius:18px;
-    background:#111b21;
-    box-shadow:0 30px 100px rgba(0,0,0,.7);
-}
-
-.modalHead{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:16px 18px;
-    border-bottom:1px solid #29363d;
-}
-
-.modalBody{
-    padding:18px;
-}
-
-.modalBody input{
-    width:100%;
-    padding:13px;
-    margin-bottom:10px;
-    border:1px solid #304149;
-    border-radius:11px;
-    outline:none;
-    background:#18252b;
-    color:#fff;
-}
-
-.modalPrimary{
-    width:100%;
-    padding:13px;
-    border:0;
-    border-radius:11px;
-    background:#00a884;
-    color:#fff;
-    font-weight:900;
-}
-
-.commandGrid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:8px;
-    margin-top:12px;
-}
-
-.commandBtn{
-    padding:11px;
-    border:1px solid #314149;
-    border-radius:10px;
-    background:#18252b;
-    color:#e4ebed;
-    text-align:left;
-}
-
-.commandBtn:hover{
-    background:#25353c;
-}
-
-/* ================= TOAST ================= */
-
-.toast{
-    position:fixed;
-    right:18px;
-    bottom:82px;
-    z-index:2000;
-    max-width:340px;
-    padding:12px 15px;
-    border:1px solid #33444a;
-    border-radius:10px;
-    background:#1d2a30;
-    color:#fff;
-    opacity:0;
-    transform:translateY(10px);
-    pointer-events:none;
-    transition:.2s;
-}
-
-.toast.show{
-    opacity:1;
-    transform:translateY(0);
-}
-
-/* ================= EFFECTS ================= */
-
-.flash{
-    animation:flashEffect .45s;
-}
-
-@keyframes flashEffect{
-    0%{filter:brightness(1)}
-    50%{filter:brightness(1.8)}
-    100%{filter:brightness(1)}
-}
-
-.shake{
-    animation:shakeEffect .35s;
-}
-
-@keyframes shakeEffect{
-    0%,100%{transform:translateX(0)}
-    25%{transform:translateX(-6px)}
-    50%{transform:translateX(6px)}
-    75%{transform:translateX(-4px)}
-}
-
-/* ================= MOBILE ================= */
-
-.mobileMenu{
-    display:none;
-}
-
-@media(max-width:800px){
-
-    .sidebar{
-        position:fixed;
-        left:0;
-        top:0;
-        bottom:0;
-        z-index:900;
-        transform:translateX(-100%);
-        transition:.2s;
-    }
-
-    .sidebar.open{
-        transform:translateX(0);
-    }
-
-    .mobileMenu{
-        display:block;
-        margin-right:6px;
-    }
-
-    .messages{
-        padding:16px 10px;
-    }
-
-    .messageBubble{
-        max-width:88%;
-    }
-
-    .headerActions .iconBtn{
-        display:none;
-    }
-
-    .loginCard{
-        padding:28px;
-    }
-
-    .loginCard h1{
-        font-size:29px;
+import os
+import secrets
+import random
+from datetime import datetime, timezone
+
+from flask import Flask, jsonify, request, send_from_directory
+from flask_socketio import SocketIO, emit
+
+# =========================================================
+# CONFIG
+# =========================================================
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+OWNER_USERNAME = "Matia"
+
+# Set this in Render:
+# OWNER_PIN = your_private_pin
+OWNER_PIN = os.environ.get("OWNER_PIN", "847291")
+
+MAX_MESSAGES = 500
+MAX_USERNAME_LENGTH = 24
+MAX_MESSAGE_LENGTH = 2000
+
+# =========================================================
+# FLASK
+# =========================================================
+
+app = Flask(
+    __name__,
+    static_folder=BASE_DIR,
+    static_url_path=""
+)
+
+app.config["SECRET_KEY"] = os.environ.get(
+    "SECRET_KEY",
+    "matia-chat-secret"
+)
+
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode="threading"
+)
+
+# =========================================================
+# STATE
+# =========================================================
+
+USERS = {}
+# username -> {
+#   role,
+#   joined,
+#   socket_id
+# }
+
+TOKENS = {}
+# token -> username
+
+SOCKET_USERS = {}
+# socket id -> username
+
+MESSAGES = []
+
+GROUPS = {
+    "main": {
+        "name": "MATIA CHAT",
+        "owner": OWNER_USERNAME
     }
 }
-</style>
-</head>
 
-<body>
+BANNED = set()
+MUTED = set()
+LOCKED_GROUPS = set()
 
-<!-- LOGIN -->
-<div id="loginScreen">
 
-    <div class="loginCard">
+# =========================================================
+# HELPERS
+# =========================================================
 
-        <div class="logo">M</div>
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
 
-        <h1>MATIA CHAT</h1>
 
-        <p>Choose your unique username.</p>
+def current_time():
+    return datetime.now().strftime("%H:%M")
 
-        <input
-            id="username"
-            maxlength="24"
-            autocomplete="off"
-            placeholder="Username"
-        >
 
-        <button id="connectBtn">
-            CONNECT
-        </button>
+def clean_username(value):
+    value = str(value or "").strip()
+    value = value[:MAX_USERNAME_LENGTH]
 
-    </div>
+    allowed = (
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789_- "
+    )
 
-</div>
+    value = "".join(
+        c for c in value
+        if c in allowed
+    )
 
+    return value.strip()
 
-<!-- APP -->
-<div id="app" class="hidden">
 
-    <aside class="sidebar" id="sidebar">
+def username_exists(username):
+    username = clean_username(username).lower()
 
-        <div class="sideTop">
+    return any(
+        existing.lower() == username
+        for existing in USERS
+    )
 
-            <div class="sideBrand">
 
-                <strong>MATIA CHAT</strong>
+def existing_username(username):
+    username = clean_username(username).lower()
 
-                <div class="sideButtons">
+    for existing in USERS:
+        if existing.lower() == username:
+            return existing
 
-                    <button
-                        class="iconBtn"
-                        onclick="openGroupModal()"
-                        title="Create group"
-                    >＋</button>
+    return None
 
-                    <button
-                        class="iconBtn"
-                        onclick="openCommands()"
-                        title="Commands"
-                    >/</button>
 
-                </div>
+def get_role(username):
+    user = existing_username(username)
 
-            </div>
+    if user is None:
+        return "user"
 
-            <input
-                id="searchInput"
-                class="searchBox"
-                placeholder="Search..."
-                oninput="searchEverything()"
-            >
+    return USERS[user].get(
+        "role",
+        "user"
+    )
 
-        </div>
 
+def is_owner(username):
+    return (
+        clean_username(username).lower()
+        == OWNER_USERNAME.lower()
+    )
 
-        <div class="sectionTitle">
-            Groups
-        </div>
 
-        <div
-            id="groupList"
-            class="groupList"
-        ></div>
+def is_mod(username):
+    return get_role(username) in (
+        "owner",
+        "mod"
+    )
 
 
-        <div class="sectionTitle">
-            Online users
-        </div>
+def make_token(username):
+    token = secrets.token_urlsafe(32)
+    TOKENS[token] = username
+    return token
 
-        <div
-            id="userList"
-            class="userList"
-        ></div>
 
-    </aside>
+def verify_token(token, username):
+    if not token:
+        return None
 
+    token_user = TOKENS.get(token)
 
-    <main class="chat">
+    if not token_user:
+        return None
 
-        <header class="chatHeader">
+    if token_user.lower() != username.lower():
+        return None
 
-            <button
-                class="iconBtn mobileMenu"
-                onclick="toggleSidebar()"
-            >☰</button>
+    user = existing_username(token_user)
 
-            <div
-                id="headerAvatar"
-                class="headerAvatar"
-            >M</div>
-
-            <div class="headerInfo">
-
-                <div
-                    id="groupTitle"
-                    class="headerTitle"
-                >
-                    MATIA CHAT
-                </div>
-
-                <div
-                    id="groupSub"
-                    class="headerSub"
-                >
-                    —
-                </div>
-
-            </div>
-
-            <div class="headerActions">
-
-                <button
-                    class="iconBtn"
-                    onclick="openUsersModal()"
-                    title="Users"
-                >👥</button>
-
-                <button
-                    class="iconBtn"
-                    onclick="openCommands()"
-                    title="Commands"
-                >⚡</button>
-
-            </div>
-
-        </header>
-
-
-        <section
-            id="messages"
-            class="messages"
-        >
-
-            <div class="empty">
-                <div>
-                    <h2>Welcome 👋</h2>
-                    <p>Start the conversation.</p>
-                </div>
-            </div>
-
-        </section>
-
-
-        <footer class="composer">
-
-            <button
-                class="iconBtn"
-                onclick="openCommands()"
-                title="Commands"
-            >＋</button>
-
-            <input
-                id="messageInput"
-                autocomplete="off"
-                placeholder="Type a message..."
-            >
-
-            <button
-                id="sendBtn"
-                onclick="sendMessage()"
-            >➤</button>
-
-        </footer>
-
-    </main>
-
-</div>
-
-
-<!-- GROUP MODAL -->
-<div
-    id="groupModal"
-    class="modalBack hidden"
->
-
-    <div class="modal">
-
-        <div class="modalHead">
-
-            <strong>Create New Group</strong>
-
-            <button
-                class="iconBtn"
-                onclick="closeModal('groupModal')"
-            >×</button>
-
-        </div>
-
-        <div class="modalBody">
-
-            <input
-                id="groupName"
-                maxlength="40"
-                placeholder="Group name"
-            >
-
-            <button
-                class="modalPrimary"
-                onclick="createGroup()"
-            >
-                CREATE GROUP
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- USERS MODAL -->
-<div
-    id="usersModal"
-    class="modalBack hidden"
->
-
-    <div class="modal">
-
-        <div class="modalHead">
-
-            <strong>Online Users</strong>
-
-            <button
-                class="iconBtn"
-                onclick="closeModal('usersModal')"
-            >×</button>
-
-        </div>
-
-        <div
-            id="usersModalBody"
-            class="modalBody"
-        ></div>
-
-    </div>
-
-</div>
-
-
-<!-- COMMAND MODAL -->
-<div
-    id="commandsModal"
-    class="modalBack hidden"
->
-
-    <div class="modal">
-
-        <div class="modalHead">
-
-            <strong>Command Center</strong>
-
-            <button
-                class="iconBtn"
-                onclick="closeModal('commandsModal')"
-            >×</button>
-
-        </div>
-
-        <div class="modalBody">
-
-            <input
-                id="commandInput"
-                placeholder="/help"
-                autocomplete="off"
-            >
-
-            <button
-                class="modalPrimary"
-                onclick="runCommandFromModal()"
-            >
-                RUN COMMAND
-            </button>
-
-            <div class="commandGrid">
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/help')"
-                >/help</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/time')"
-                >/time</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/flip')"
-                >/flip</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/dice')"
-                >/dice</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/roll')"
-                >/roll</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/8ball')"
-                >/8ball</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/rate')"
-                >/rate</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/online')"
-                >/online</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/clear')"
-                >/clear</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/announce hello')"
-                >/announce</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/mute username')"
-                >/mute</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/unmute username')"
-                >/unmute</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/kick username')"
-                >/kick</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/ban username')"
-                >/ban</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/unban username')"
-                >/unban</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/promote username')"
-                >/promote</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/demote username')"
-                >/demote</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/lock')"
-                >/lock</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/unlock')"
-                >/unlock</button>
-
-                <button
-                    class="commandBtn"
-                    onclick="quickCommand('/rename New Name')"
-                >/rename</button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="toast"
-    class="toast"
-></div>
-
-
-<script>
-let USERNAME = "";
-let USER_ROLE = "user";
-let CURRENT_GROUP = "main";
-
-let users = [];
-let groups = [];
-let messages = [];
-
-let socket = null;
-
-
-/* ================= ELEMENTS ================= */
-
-const loginScreen =
-    document.getElementById("loginScreen");
-
-const app =
-    document.getElementById("app");
-
-const usernameInput =
-    document.getElementById("username");
-
-const messageInput =
-    document.getElementById("messageInput");
-
-const messagesBox =
-    document.getElementById("messages");
-
-const groupList =
-    document.getElementById("groupList");
-
-const userList =
-    document.getElementById("userList");
-
-const groupTitle =
-    document.getElementById("groupTitle");
-
-const groupSub =
-    document.getElementById("groupSub");
-
-
-/* ================= UTILS ================= */
-
-function escapeHtml(value){
-
-    return String(value)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-}
-
-
-function showToast(text){
-
-    const toast =
-        document.getElementById("toast");
-
-    toast.textContent = text;
-    toast.classList.add("show");
-
-    clearTimeout(window.toastTimer);
-
-    window.toastTimer =
-        setTimeout(()=>{
-            toast.classList.remove("show");
-        },2200);
-}
-
-
-function openModal(id){
-
-    document
-        .getElementById(id)
-        .classList.remove("hidden");
-}
-
-
-function closeModal(id){
-
-    document
-        .getElementById(id)
-        .classList.add("hidden");
-}
-
-
-/* ================= LOGIN ================= */
-
-document
-    .getElementById("connectBtn")
-    .addEventListener(
-        "click",
-        connectUser
-    );
-
-
-usernameInput.addEventListener(
-    "keydown",
-    event => {
-
-        if(event.key === "Enter"){
-            connectUser();
+    if user is None:
+        return None
+
+    return user
+
+
+def add_message(
+    username,
+    text,
+    group="main",
+    kind="user"
+):
+    message = {
+        "id": secrets.token_hex(8),
+        "username": username,
+        "text": text,
+        "group": group,
+        "time": current_time(),
+        "timestamp": now_iso(),
+        "kind": kind,
+        "role": get_role(username)
+    }
+
+    MESSAGES.append(message)
+
+    if len(MESSAGES) > MAX_MESSAGES:
+        del MESSAGES[:-MAX_MESSAGES]
+
+    return message
+
+
+def send_users():
+    socketio.emit(
+        "users",
+        [
+            {
+                "username": username,
+                "role": data.get(
+                    "role",
+                    "user"
+                ),
+                "online": True
+            }
+            for username, data in USERS.items()
+        ]
+    )
+
+
+def send_groups():
+    socketio.emit(
+        "groups",
+        [
+            {
+                "id": group_id,
+                "name": group["name"]
+            }
+            for group_id, group in GROUPS.items()
+        ]
+    )
+
+
+def broadcast_message(message):
+    socketio.emit(
+        "new_message",
+        message
+    )
+
+
+def remove_user(username):
+    user = existing_username(username)
+
+    if user is None:
+        return
+
+    socket_id = USERS[user].get(
+        "socket_id"
+    )
+
+    USERS.pop(user, None)
+
+    # remove token(s)
+    for token, token_user in list(
+        TOKENS.items()
+    ):
+        if token_user.lower() == user.lower():
+            TOKENS.pop(token, None)
+
+    # remove socket mapping
+    if socket_id:
+        SOCKET_USERS.pop(
+            socket_id,
+            None
+        )
+
+
+# =========================================================
+# FRONTEND
+# =========================================================
+
+@app.route("/")
+def home():
+    return send_from_directory(
+        BASE_DIR,
+        "index.html"
+    )
+
+
+@app.route("/index.html")
+def index_page():
+    return send_from_directory(
+        BASE_DIR,
+        "index.html"
+    )
+
+
+@app.route("/health")
+def health():
+    return jsonify({
+        "ok": True,
+        "service": "MATIA CHAT"
+    })
+
+
+# =========================================================
+# LOGIN
+# =========================================================
+
+@app.route(
+    "/api/login",
+    methods=["POST"]
+)
+def login():
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+    username = clean_username(
+        data.get("username")
+    )
+
+    pin = str(
+        data.get("pin") or ""
+    ).strip()
+
+    # Basic validation
+    if not username:
+        return jsonify({
+            "ok": False,
+            "error": "Enter a username."
+        }), 400
+
+    if len(username) < 2:
+        return jsonify({
+            "ok": False,
+            "error": "Username must be at least 2 characters."
+        }), 400
+
+    # Banned usernames
+    if username.lower() in {
+        item.lower()
+        for item in BANNED
+    }:
+        return jsonify({
+            "ok": False,
+            "error": "This username is banned."
+        }), 403
+
+    # =====================================================
+    # MATIA = RESERVED OWNER NAME
+    # =====================================================
+
+    if username.lower() == OWNER_USERNAME.lower():
+
+        # Owner already online
+        if username_exists(
+            OWNER_USERNAME
+        ):
+            return jsonify({
+                "ok": False,
+                "error": "Owner is already online."
+            }), 409
+
+        # Wrong PIN
+        if pin != OWNER_PIN:
+            return jsonify({
+                "ok": False,
+                "error":
+                    "That username is reserved for the Owner."
+            }), 403
+
+        username = OWNER_USERNAME
+        role = "owner"
+
+    # =====================================================
+    # NORMAL USERS
+    # =====================================================
+
+    else:
+
+        if username_exists(username):
+            return jsonify({
+                "ok": False,
+                "error": "Username already taken."
+            }), 409
+
+        role = "user"
+
+    # Create
+    USERS[username] = {
+        "role": role,
+        "joined": now_iso(),
+        "socket_id": None
+    }
+
+    if role == "owner":
+        GROUPS["main"]["owner"] = OWNER_USERNAME
+
+    token = make_token(username)
+
+    send_users()
+
+    return jsonify({
+        "ok": True,
+        "username": username,
+        "role": role,
+        "token": token
+    })
+
+
+# =========================================================
+# USERS
+# =========================================================
+
+@app.route("/api/users")
+def users_api():
+
+    return jsonify([
+        {
+            "username": username,
+            "role": data.get(
+                "role",
+                "user"
+            ),
+            "online": True
         }
-
-    }
-);
-
-
-async function connectUser(){
-
-    const name =
-        usernameInput.value.trim();
-
-    if(!name){
-
-        showToast(
-            "Enter a username."
-        );
-
-        usernameInput.focus();
-
-        return;
-    }
+        for username, data
+        in USERS.items()
+    ])
 
 
-    try{
+# =========================================================
+# GROUPS
+# =========================================================
 
-        const response =
-            await fetch(
-                "/api/login",
-                {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body:JSON.stringify({
-                        username:name
-                    })
-                }
-            );
+@app.route("/api/groups")
+def groups_api():
 
-
-        const data =
-            await response.json();
-
-
-        if(!response.ok){
-
-            showToast(
-                data.error ||
-                "Login failed."
-            );
-
-            /*
-               IMPORTANT:
-               Chat does NOT open.
-            */
-
-            loginScreen.classList.remove(
-                "hidden"
-            );
-
-            app.classList.add(
-                "hidden"
-            );
-
-            usernameInput.focus();
-
-            return;
+    return jsonify([
+        {
+            "id": group_id,
+            "name": group["name"]
         }
+        for group_id, group
+        in GROUPS.items()
+    ])
 
 
-        USERNAME =
-            data.username;
+@app.route(
+    "/api/group",
+    methods=["POST"]
+)
+def create_group_api():
 
-        USER_ROLE =
-            data.role || "user";
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
 
+    username = clean_username(
+        data.get("username")
+    )
 
-        /*
-           Only now open the chat.
-        */
+    token = str(
+        data.get("token") or ""
+    )
 
-        loginScreen.classList.add(
-            "hidden"
-        );
+    name = str(
+        data.get("name") or ""
+    ).strip()[:40]
 
-        app.classList.remove(
-            "hidden"
-        );
+    user = verify_token(
+        token,
+        username
+    )
 
+    if user is None:
+        return jsonify({
+            "ok": False,
+            "error": "Invalid session."
+        }), 403
 
-        document
-            .getElementById("headerAvatar")
-            .textContent =
-                USERNAME
-                    .charAt(0)
-                    .toUpperCase();
+    if not is_mod(user):
+        return jsonify({
+            "ok": False,
+            "error":
+                "Only Owner or Mod can create groups."
+        }), 403
 
+    if not name:
+        return jsonify({
+            "ok": False,
+            "error":
+                "Enter a group name."
+        }), 400
 
-        groupSub.textContent =
-            `${USER_ROLE.toUpperCase()} • online`;
+    group_id = (
+        "group_" +
+        secrets.token_hex(4)
+    )
 
-
-        await loadGroups();
-
-        await loadUsers();
-
-        await loadMessages();
-
-        connectSocket();
-
-        messageInput.focus();
-
-
-    }catch(error){
-
-        console.error(error);
-
-        showToast(
-            "Could not connect to server."
-        );
-
+    GROUPS[group_id] = {
+        "name": name,
+        "owner": user
     }
 
-}
+    send_groups()
+
+    return jsonify({
+        "ok": True,
+        "id": group_id,
+        "name": name
+    })
+
+
+# =========================================================
+# MESSAGES
+# =========================================================
+
+@app.route("/api/messages")
+def messages_get():
+
+    group = request.args.get(
+        "group",
+        "main"
+    )
+
+    return jsonify([
+        message
+        for message in MESSAGES
+        if message["group"] == group
+    ])
+
+
+@app.route(
+    "/api/messages",
+    methods=["POST"]
+)
+def messages_post():
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+    username = clean_username(
+        data.get("username")
+    )
+
+    token = str(
+        data.get("token") or ""
+    )
+
+    text = str(
+        data.get("text") or ""
+    ).strip()
+
+    text = text[:MAX_MESSAGE_LENGTH]
+
+    group = str(
+        data.get("group") or "main"
+    ).strip()
+
+    user = verify_token(
+        token,
+        username
+    )
+
+    if user is None:
+        return jsonify({
+            "ok": False,
+            "error": "Invalid session."
+        }), 403
+
+    if not text:
+        return jsonify({
+            "ok": False,
+            "error": "Message is empty."
+        }), 400
+
+    if user in MUTED:
+        return jsonify({
+            "ok": False,
+            "error": "You are muted."
+        }), 403
+
+    if (
+        group in LOCKED_GROUPS
+        and not is_mod(user)
+    ):
+        return jsonify({
+            "ok": False,
+            "error": "This group is locked."
+        }), 403
+
+    if text.startswith("/"):
+        return jsonify({
+            "ok": False,
+            "error": "Use the command system."
+        }), 400
+
+    message = add_message(
+        user,
+        text,
+        group,
+        "user"
+    )
+
+    broadcast_message(message)
+
+    return jsonify({
+        "ok": True,
+        "message": message
+    })
 
 
-/* ================= SOCKET ================= */
-
-function connectSocket(){
-
-    if(typeof io === "undefined"){
-        return;
-    }
-
-    try{
-
-        socket = io({
-            transports:["polling"],
-            reconnection:true,
-            reconnectionAttempts:20,
-            timeout:10000
-        });
-
-
-        socket.on(
-            "connect",
-            ()=>{
-
-                socket.emit(
-                    "login",
-                    {
-                        username:USERNAME
-                    }
-                );
-
-                groupSub.textContent =
-                    `${USER_ROLE.toUpperCase()} • online`;
-
-            }
-        );
-
-
-        socket.on(
-            "login_error",
-            data => {
-
-                showToast(
-                    data.error ||
-                    "Login error."
-                );
-
-            }
-        );
-
-
-        socket.on(
-            "login_success",
-            data => {
-
-                USER_ROLE =
-                    data.role ||
-                    USER_ROLE;
-
-                groupSub.textContent =
-                    `${USER_ROLE.toUpperCase()} • online`;
-
-            }
-        );
-
-
-        socket.on(
-            "new_message",
-            message => {
-
-                const alreadyExists =
-                    messages.some(
-                        item =>
-                            String(item.id) ===
-                            String(message.id)
-                    );
-
-                if(!alreadyExists){
-
-                    messages.push(message);
-
-                    renderMessages();
-
-                }
-
-            }
-        );
-
-
-        socket.on(
-            "users",
-            data => {
-
-                users =
-                    Array.isArray(data)
-                        ? data
-                        : [];
-
-                renderUsers();
-
-            }
-        );
-
-
-        socket.on(
-            "groups",
-            data => {
-
-                groups =
-                    Array.isArray(data)
-                        ? data
-                        : groups;
-
-                renderGroups();
-
-            }
-        );
-
-
-        socket.on(
-            "clear_group",
-            data => {
-
-                messages =
-                    messages.filter(
-                        message =>
-                            message.group !==
-                            data.group
-                    );
-
-                renderMessages();
-
-            }
-        );
-
-
-        socket.on(
-            "announcement",
-            data => {
-
-                showToast(
-                    "📢 " +
-                    (data.text || "Announcement")
-                );
-
-                document.body.classList.add(
-                    "flash"
-                );
-
-                setTimeout(()=>{
-                    document.body.classList.remove(
-                        "flash"
-                    );
-                },500);
-
-            }
-        );
-
-
-        socket.on(
-            "force_logout",
-            data => {
-
-                if(
-                    data.username &&
-                    data.username.toLowerCase() ===
-                    USERNAME.toLowerCase()
-                ){
-
-                    showToast(
-                        "You have been removed."
-                    );
-
-                    setTimeout(()=>{
-                        location.reload();
-                    },900);
-
-                }
-
-            }
-        );
-
-
-        socket.on(
-            "error_message",
-            data => {
-
-                showToast(
-                    data.error ||
-                    "Error."
-                );
-
-            }
-        );
-
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-
-/* ================= GROUPS ================= */
-
-async function loadGroups(){
-
-    try{
-
-        const response =
-            await fetch("/api/groups");
-
-        if(response.ok){
-
-            groups =
-                await response.json();
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-    renderGroups();
-
-}
-
-
-function renderGroups(){
-
-    groupList.innerHTML = "";
-
-    groups.forEach(group=>{
-
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "groupItem" +
-            (
-                group.id === CURRENT_GROUP
-                    ? " active"
-                    : ""
-            );
-
-
-        item.innerHTML = `
-
-            <div class="avatar">
-                ${escapeHtml(
-                    group.name
-                        .charAt(0)
-                        .toUpperCase()
-                )}
-            </div>
-
-            <div class="userMeta">
-
-                <div class="userName">
-                    ${escapeHtml(
-                        group.name
-                    )}
-                </div>
-
-                <div class="userRole">
-                    Group
-                </div>
-
-            </div>
-
-        `;
-
-
-        item.onclick =
-            ()=>selectGroup(group.id);
-
-
-        groupList.appendChild(item);
-
-    });
-
-}
-
-
-function selectGroup(id){
-
-    const group =
-        groups.find(
-            item => item.id === id
-        );
-
-    if(!group){
-        return;
-    }
-
-    CURRENT_GROUP = id;
-
-    groupTitle.textContent =
-        group.name;
-
-    renderGroups();
-
-    loadMessages();
-
-    document
-        .getElementById("sidebar")
-        .classList.remove("open");
-
-}
-
-
-function openGroupModal(){
-
-    if(
-        USER_ROLE !== "owner" &&
-        USER_ROLE !== "mod"
-    ){
-
-        showToast(
-            "Only Owner/Mod can create groups."
-        );
-
-        return;
-    }
-
-    openModal("groupModal");
-
-}
-
-
-async function createGroup(){
-
-    const input =
-        document.getElementById("groupName");
-
-    const name =
-        input.value.trim();
-
-    if(!name){
-
-        showToast(
-            "Enter a group name."
-        );
-
-        return;
-    }
-
-
-    try{
-
-        const response =
-            await fetch(
-                "/api/group",
-                {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body:JSON.stringify({
-                        username:USERNAME,
-                        name:name
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if(!response.ok){
-
-            showToast(
-                data.error ||
-                "Could not create group."
-            );
-
-            return;
-        }
-
-
-        input.value = "";
-
-        closeModal(
-            "groupModal"
-        );
-
-        await loadGroups();
-
-        CURRENT_GROUP =
-            data.id;
-
-        groupTitle.textContent =
-            data.name;
-
-        renderGroups();
-
-        loadMessages();
-
-        showToast(
-            "✅ Group created!"
-        );
-
-
-    }catch(error){
-
-        console.error(error);
-
-        showToast(
-            "Server error."
-        );
-
-    }
-
-}
-
-
-/* ================= USERS ================= */
-
-async function loadUsers(){
-
-    try{
-
-        const response =
-            await fetch("/api/users");
-
-        if(response.ok){
-
-            users =
-                await response.json();
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-    renderUsers();
-
-}
-
-
-function renderUsers(){
-
-    userList.innerHTML = "";
-
-    users.forEach(user=>{
-
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "userItem";
-
-
-        const roleClass =
-            user.role === "owner"
-                ? "roleOwner"
-                : user.role === "mod"
-                    ? "roleMod"
-                    : "";
-
-
-        item.innerHTML = `
-
-            <div class="avatar">
-                ${escapeHtml(
-                    user.username
-                        .charAt(0)
-                        .toUpperCase()
-                )}
-            </div>
-
-            <div class="userMeta">
-
-                <div class="userName ${roleClass}">
-
-                    ${escapeHtml(
-                        user.username
-                    )}
-
-                    ${
-                        user.role === "owner"
-                            ? " 👑"
-                            : user.role === "mod"
-                                ? " 🛡️"
-                                : ""
-                    }
-
-                </div>
-
-                <div class="userRole">
-                    ${escapeHtml(
-                        user.role
-                    )}
-                </div>
-
-            </div>
-
-            <div class="statusDot"></div>
-
-        `;
-
-
-        userList.appendChild(item);
-
-    });
-
-}
-
-
-function openUsersModal(){
-
-    const body =
-        document.getElementById(
-            "usersModalBody"
-        );
-
-
-    if(!users.length){
-
-        body.innerHTML =
-            "<p>No users online.</p>";
-
-    }else{
-
-        body.innerHTML =
-            users.map(user=>{
-
-                return `
-
-                    <div class="userItem">
-
-                        <div class="avatar">
-                            ${escapeHtml(
-                                user.username
-                                    .charAt(0)
-                                    .toUpperCase()
-                            )}
-                        </div>
-
-                        <div class="userMeta">
-
-                            <div class="userName">
-                                ${escapeHtml(
-                                    user.username
-                                )}
-                            </div>
-
-                            <div class="userRole">
-                                ${escapeHtml(
-                                    user.role
-                                )}
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                `;
-
-            }).join("");
-
-    }
-
-
-    openModal("usersModal");
-
-}
-
-
-/* ================= MESSAGES ================= */
-
-async function loadMessages(){
-
-    try{
-
-        const response =
-            await fetch(
-                "/api/messages?group=" +
-                encodeURIComponent(
-                    CURRENT_GROUP
+# =========================================================
+# COMMANDS
+# =========================================================
+
+@app.route(
+    "/api/command",
+    methods=["POST"]
+)
+def command_api():
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+    username = clean_username(
+        data.get("username")
+    )
+
+    token = str(
+        data.get("token") or ""
+    )
+
+    command_text = str(
+        data.get("command") or ""
+    ).strip()
+
+    group = str(
+        data.get("group") or "main"
+    ).strip()
+
+    user = verify_token(
+        token,
+        username
+    )
+
+    if user is None:
+        return jsonify({
+            "ok": False,
+            "error": "Invalid session."
+        }), 403
+
+    if not command_text.startswith("/"):
+        return jsonify({
+            "ok": False,
+            "error": "Commands start with /"
+        }), 400
+
+    parts = command_text.split()
+
+    command = parts[0].lower()
+
+    args = parts[1:]
+
+    # =====================================================
+    # NORMAL COMMANDS
+    # =====================================================
+
+    if command in (
+        "/help",
+        "/commands"
+    ):
+
+        text = (
+            "📚 User: /time /flip /dice /roll "
+            "/8ball /rate /online /users "
+            "/hug /slap /dance"
+        )
+
+    elif command == "/time":
+
+        text = (
+            "🕐 Server time: "
+            + datetime.now().strftime(
+                "%H:%M:%S"
+            )
+        )
+
+    elif command == "/flip":
+
+        text = random.choice([
+            "🪙 Heads!",
+            "🪙 Tails!"
+        ])
+
+    elif command == "/dice":
+
+        text = (
+            f"🎲 You rolled "
+            f"{random.randint(1,6)}"
+        )
+
+    elif command == "/roll":
+
+        maximum = 100
+
+        if args:
+            try:
+                maximum = max(
+                    1,
+                    min(
+                        int(args[0]),
+                        100000
+                    )
                 )
-            );
-
-
-        if(response.ok){
-
-            messages =
-                await response.json();
-
-            renderMessages();
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-
-function renderMessages(){
-
-    const filtered =
-        messages.filter(
-            message =>
-                message.group ===
-                CURRENT_GROUP
-        );
-
-
-    if(!filtered.length){
-
-        messagesBox.innerHTML = `
-
-            <div class="empty">
-
-                <div>
-
-                    <h2>Welcome 👋</h2>
-
-                    <p>
-                        No messages yet.
-                    </p>
-
-                </div>
-
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    messagesBox.innerHTML =
-        filtered.map(message=>{
-
-            const mine =
-                message.username ===
-                USERNAME;
-
-
-            const roleClass =
-                message.role === "owner"
-                    ? "roleOwner"
-                    : message.role === "mod"
-                        ? "roleMod"
-                        : "";
-
-
-            return `
-
-                <div class="
-                    messageRow
-                    ${mine ? "mine" : ""}
-                ">
-
-                    <div class="messageBubble">
-
-                        ${
-                            mine
-                            ? ""
-                            : `
-                                <div class="
-                                    messageUser
-                                    ${roleClass}
-                                ">
-
-                                    ${escapeHtml(
-                                        message.username
-                                    )}
-
-                                    ${
-                                        message.role === "owner"
-                                            ? " 👑"
-                                            : message.role === "mod"
-                                                ? " 🛡️"
-                                                : ""
-                                    }
-
-                                </div>
-                            `
-                        }
-
-                        <div class="messageText">
-
-                            ${escapeHtml(
-                                message.text
-                            )}
-
-                        </div>
-
-                        <div class="messageTime">
-
-                            ${escapeHtml(
-                                message.time || ""
-                            )}
-
-                        </div>
-
-                        ${
-                            message.kind === "command"
-                                ? `
-                                    <div class="messageKind">
-                                        command
-                                    </div>
-                                `
-                                : ""
-                        }
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }).join("");
-
-
-    messagesBox.scrollTop =
-        messagesBox.scrollHeight;
-
-}
-
-
-/* ================= SEND ================= */
-
-messageInput.addEventListener(
-    "keydown",
-    event => {
-
-        if(
-            event.key === "Enter" &&
-            !event.shiftKey
-        ){
-
-            event.preventDefault();
-
-            sendMessage();
-
-        }
-
-    }
-);
-
-
-async function sendMessage(){
-
-    const text =
-        messageInput.value.trim();
-
-    if(!text){
-        return;
-    }
-
-    messageInput.value = "";
-
-
-    if(text.startsWith("/")){
-
-        runCommand(text);
-
-        return;
-    }
-
-
-    try{
-
-        if(socket && socket.connected){
-
-            socket.emit(
-                "send_message",
-                {
-                    username:USERNAME,
-                    text:text,
-                    group:CURRENT_GROUP
-                }
-            );
-
-            return;
-        }
-
-
-        const response =
-            await fetch(
-                "/api/messages",
-                {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":
-                            "application/json"
+            except ValueError:
+                pass
+
+        text = (
+            f"🎲 Roll: "
+            f"{random.randint(1, maximum)}"
+        )
+
+    elif command == "/8ball":
+
+        text = random.choice([
+            "🎱 Definitely.",
+            "🎱 Yes.",
+            "🎱 Probably.",
+            "🎱 Maybe.",
+            "🎱 Ask again later.",
+            "🎱 Nope.",
+            "🎱 Absolutely not."
+        ])
+
+    elif command == "/rate":
+
+        target = (
+            " ".join(args)
+            or user
+        )
+
+        text = (
+            f"⭐ {target}: "
+            f"{random.randint(1,100)}/100"
+        )
+
+    elif command in (
+        "/online",
+        "/users"
+    ):
+
+        text = (
+            f"🟢 Online users: "
+            f"{len(USERS)}"
+        )
+
+    elif command == "/hug":
+
+        target = (
+            " ".join(args)
+            or "everyone"
+        )
+
+        text = (
+            f"🤗 {user} hugged "
+            f"{target}"
+        )
+
+    elif command == "/slap":
+
+        target = (
+            " ".join(args)
+            or "the air"
+        )
+
+        text = (
+            f"👋 {user} slapped "
+            f"{target}"
+        )
+
+    elif command == "/dance":
+
+        text = (
+            f"💃 {user} is dancing!"
+        )
+
+    # =====================================================
+    # CLEAR
+    # =====================================================
+
+    elif command == "/clear":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can use /clear."
+            }), 403
+
+        MESSAGES[:] = [
+            m
+            for m in MESSAGES
+            if m["group"] != group
+        ]
+
+        socketio.emit(
+            "clear_group",
+            {
+                "group": group
+            }
+        )
+
+        text = "🧹 Chat cleared."
+
+    # =====================================================
+    # ANNOUNCE
+    # =====================================================
+
+    elif command == "/announce":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can announce."
+            }), 403
+
+        announcement = (
+            " ".join(args)
+            .strip()
+        )
+
+        if not announcement:
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Usage: /announce message"
+            }), 400
+
+        socketio.emit(
+            "announcement",
+            {
+                "text":
+                    announcement,
+                "username":
+                    user
+            }
+        )
+
+        text = (
+            f"📢 {announcement}"
+        )
+
+    # =====================================================
+    # KICK
+    # =====================================================
+
+    elif command == "/kick":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can kick."
+            }), 403
+
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
+
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
+
+            text = "❌ User not found."
+
+        elif is_owner(target_user):
+
+            text = (
+                "❌ The Owner cannot be kicked."
+            )
+
+        elif (
+            target_user.lower()
+            == user.lower()
+        ):
+
+            text = (
+                "❌ You cannot kick yourself."
+            )
+
+        elif (
+            get_role(user) == "mod"
+            and get_role(target_user) == "mod"
+        ):
+
+            text = (
+                "❌ A Mod cannot kick another Mod."
+            )
+
+        else:
+
+            sid = USERS[
+                target_user
+            ].get("socket_id")
+
+            if sid:
+
+                socketio.emit(
+                    "force_logout",
+                    {
+                        "username":
+                            target_user
                     },
-                    body:JSON.stringify({
-                        username:USERNAME,
-                        text:text,
-                        group:CURRENT_GROUP
-                    })
-                }
-            );
+                    to=sid
+                )
 
+            remove_user(
+                target_user
+            )
 
-        const data =
-            await response.json();
+            send_users()
 
+            text = (
+                f"👢 {target_user} was kicked."
+            )
 
-        if(!response.ok){
+    # =====================================================
+    # BAN
+    # =====================================================
 
-            showToast(
-                data.error ||
-                "Message failed."
-            );
+    elif command == "/ban":
 
-            return;
-        }
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can ban."
+            }), 403
 
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
 
-        if(data.message){
+        target_user = existing_username(
+            target
+        )
 
-            messages.push(
-                data.message
-            );
+        if target_user is None:
 
-            renderMessages();
+            text = "❌ User not found."
 
-        }
+        elif is_owner(target_user):
 
+            text = (
+                "❌ The Owner cannot be banned."
+            )
 
-    }catch(error){
+        elif (
+            target_user.lower()
+            == user.lower()
+        ):
 
-        console.error(error);
+            text = (
+                "❌ You cannot ban yourself."
+            )
 
-        showToast(
-            "Server connection failed."
-        );
+        elif (
+            get_role(user) == "mod"
+            and get_role(target_user) == "mod"
+        ):
 
-    }
+            text = (
+                "❌ A Mod cannot ban another Mod."
+            )
 
-}
+        else:
 
+            sid = USERS[
+                target_user
+            ].get("socket_id")
 
-/* ================= COMMANDS ================= */
+            BANNED.add(
+                target_user
+            )
 
-function openCommands(){
+            if sid:
 
-    openModal(
-        "commandsModal"
-    );
-
-    setTimeout(()=>{
-        document
-            .getElementById("commandInput")
-            .focus();
-    },50);
-
-}
-
-
-function runCommandFromModal(){
-
-    const input =
-        document.getElementById(
-            "commandInput"
-        );
-
-    const command =
-        input.value.trim();
-
-    if(!command){
-        return;
-    }
-
-    input.value = "";
-
-    closeModal(
-        "commandsModal"
-    );
-
-    runCommand(command);
-
-}
-
-
-function quickCommand(command){
-
-    closeModal(
-        "commandsModal"
-    );
-
-    runCommand(command);
-
-}
-
-
-async function runCommand(command){
-
-    if(!command.startsWith("/")){
-
-        command =
-            "/" + command;
-
-    }
-
-
-    try{
-
-        const response =
-            await fetch(
-                "/api/command",
-                {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":
-                            "application/json"
+                socketio.emit(
+                    "force_logout",
+                    {
+                        "username":
+                            target_user
                     },
-                    body:JSON.stringify({
-                        username:USERNAME,
-                        command:command,
-                        group:CURRENT_GROUP
-                    })
-                }
-            );
+                    to=sid
+                )
+
+            remove_user(
+                target_user
+            )
+
+            send_users()
+
+            text = (
+                f"🔨 {target_user} was banned."
+            )
+
+    # =====================================================
+    # UNBAN
+    # =====================================================
+
+    elif command == "/unban":
+
+        if not is_owner(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner can unban."
+            }), 403
+
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
+
+        if not target:
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Usage: /unban username"
+            }), 400
+
+        BANNED.discard(
+            target
+        )
+
+        text = (
+            f"✅ {target} was unbanned."
+        )
+
+    # =====================================================
+    # MUTE
+    # =====================================================
+
+    elif command == "/mute":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can mute."
+            }), 403
+
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
+
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
+
+            text = "❌ User not found."
+
+        elif is_owner(target_user):
+
+            text = (
+                "❌ The Owner cannot be muted."
+            )
+
+        elif (
+            get_role(user) == "mod"
+            and get_role(target_user) == "mod"
+        ):
+
+            text = (
+                "❌ A Mod cannot mute another Mod."
+            )
+
+        else:
+
+            MUTED.add(
+                target_user
+            )
+
+            text = (
+                f"🔇 {target_user} was muted."
+            )
+
+    # =====================================================
+    # UNMUTE
+    # =====================================================
+
+    elif command == "/unmute":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can unmute."
+            }), 403
+
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
+
+        MUTED.discard(
+            target
+        )
+
+        text = (
+            f"🔊 {target} was unmuted."
+        )
+
+    # =====================================================
+    # PROMOTE
+    # =====================================================
+
+    elif command == "/promote":
+
+        if not is_owner(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner can promote."
+            }), 403
+
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
+
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
+
+            text = "❌ User not found."
+
+        elif is_owner(target_user):
+
+            text = (
+                "👑 That user is already Owner."
+            )
+
+        else:
+
+            USERS[
+                target_user
+            ]["role"] = "mod"
+
+            send_users()
+
+            text = (
+                f"🛡️ {target_user} is now a Mod."
+            )
+
+    # =====================================================
+    # DEMOTE
+    # =====================================================
+
+    elif command == "/demote":
+
+        if not is_owner(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner can demote."
+            }), 403
+
+        target = clean_username(
+            args[0]
+            if args
+            else ""
+        )
+
+        target_user = existing_username(
+            target
+        )
+
+        if target_user is None:
+
+            text = "❌ User not found."
+
+        elif is_owner(target_user):
+
+            text = (
+                "❌ Owner cannot be demoted."
+            )
+
+        else:
+
+            USERS[
+                target_user
+            ]["role"] = "user"
+
+            send_users()
+
+            text = (
+                f"⬇️ {target_user} is now a User."
+            )
+
+    # =====================================================
+    # LOCK
+    # =====================================================
+
+    elif command == "/lock":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can lock."
+            }), 403
+
+        LOCKED_GROUPS.add(
+            group
+        )
+
+        text = (
+            "🔒 This group is locked."
+        )
+
+    # =====================================================
+    # UNLOCK
+    # =====================================================
+
+    elif command == "/unlock":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can unlock."
+            }), 403
+
+        LOCKED_GROUPS.discard(
+            group
+        )
+
+        text = (
+            "🔓 This group is unlocked."
+        )
+
+    # =====================================================
+    # RENAME
+    # =====================================================
+
+    elif command == "/rename":
+
+        if not is_mod(user):
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Only Owner/Mod can rename."
+            }), 403
+
+        new_name = (
+            " ".join(args)
+            .strip()
+        )[:40]
+
+        if not new_name:
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Usage: /rename New Name"
+            }), 400
+
+        if group not in GROUPS:
+            return jsonify({
+                "ok": False,
+                "error":
+                    "Group not found."
+            }), 404
+
+        GROUPS[group]["name"] = (
+            new_name
+        )
+
+        send_groups()
+
+        text = (
+            f"✏️ Group renamed to {new_name}"
+        )
+
+    else:
+
+        return jsonify({
+            "ok": False,
+            "error":
+                f"Unknown command: {command}"
+        }), 400
 
 
-        const data =
-            await response.json();
+    message = add_message(
+        user,
+        text,
+        group,
+        "command"
+    )
+
+    broadcast_message(
+        message
+    )
+
+    return jsonify({
+        "ok": True,
+        "message": text
+    })
 
 
-        if(!response.ok){
+# =========================================================
+# SOCKET.IO
+# =========================================================
 
-            showToast(
-                data.error ||
-                "Command failed."
-            );
+@socketio.on("connect")
+def socket_connect():
 
-            return;
+    emit(
+        "server_status",
+        {
+            "status": "connected"
         }
+    )
+
+    send_users()
+    send_groups()
 
 
-        if(
-            (!socket || !socket.connected) &&
-            data.message
-        ){
+@socketio.on("login")
+def socket_login(data):
 
-            messages.push({
+    data = data or {}
 
-                id:
-                    Date.now() +
-                    Math.random(),
+    username = clean_username(
+        data.get("username")
+    )
 
-                username:
-                    USERNAME,
+    token = str(
+        data.get("token") or ""
+    )
 
-                text:
-                    data.message,
+    user = verify_token(
+        token,
+        username
+    )
 
-                group:
-                    CURRENT_GROUP,
+    if user is None:
 
-                time:
-                    new Date()
-                        .toLocaleTimeString(
-                            [],
-                            {
-                                hour:"2-digit",
-                                minute:"2-digit"
-                            }
-                        ),
+        emit(
+            "login_error",
+            {
+                "error":
+                    "Invalid login session."
+            }
+        )
 
-                kind:"command",
+        return
 
-                role:
-                    USER_ROLE
 
-            });
+    sid = request.sid
 
-            renderMessages();
 
+    old_sid = USERS[
+        user
+    ].get("socket_id")
+
+
+    # Reconnect handling
+    if old_sid and old_sid != sid:
+
+        SOCKET_USERS.pop(
+            old_sid,
+            None
+        )
+
+
+    USERS[
+        user
+    ]["socket_id"] = sid
+
+
+    SOCKET_USERS[
+        sid
+    ] = user
+
+
+    emit(
+        "login_success",
+        {
+            "username":
+                user,
+
+            "role":
+                get_role(user)
         }
+    )
 
 
-        runEffect(command);
+    send_users()
 
 
-    }catch(error){
+@socketio.on("send_message")
+def socket_send_message(data):
 
-        console.error(error);
+    data = data or {}
 
-        showToast(
-            "Command server error."
-        );
+    username = clean_username(
+        data.get("username")
+    )
 
-    }
+    token = str(
+        data.get("token") or ""
+    )
 
-}
+    text = str(
+        data.get("text") or ""
+    ).strip()[:MAX_MESSAGE_LENGTH]
 
+    group = str(
+        data.get("group") or "main"
+    ).strip()
 
-/* ================= EFFECTS ================= */
 
-function runEffect(command){
+    user = verify_token(
+        token,
+        username
+    )
 
-    const cmd =
-        command
-            .split(" ")[0]
-            .toLowerCase();
 
+    if user is None:
 
-    if(
-        cmd === "/party" ||
-        cmd === "/disco"
-    ){
+        emit(
+            "error_message",
+            {
+                "error":
+                    "Invalid session."
+            }
+        )
 
-        document.body.classList.add(
-            "flash"
-        );
+        return
 
-        setTimeout(()=>{
-            document.body.classList.remove(
-                "flash"
-            );
-        },500);
 
-    }
+    if not text:
+        return
 
 
-    if(cmd === "/shake"){
+    if user in MUTED:
 
-        document.body.classList.add(
-            "shake"
-        );
+        emit(
+            "error_message",
+            {
+                "error":
+                    "You are muted."
+            }
+        )
 
-        setTimeout(()=>{
-            document.body.classList.remove(
-                "shake"
-            );
-        },400);
+        return
 
-    }
 
-}
+    if (
+        group in LOCKED_GROUPS
+        and not is_mod(user)
+    ):
 
+        emit(
+            "error_message",
+            {
+                "error":
+                    "This group is locked."
+            }
+        )
 
-/* ================= SEARCH ================= */
+        return
 
-function searchEverything(){
 
-    const input =
-        document.getElementById(
-            "searchInput"
-        );
+    if text.startswith("/"):
 
-    const value =
-        input.value
-            .trim()
-            .toLowerCase();
+        emit(
+            "error_message",
+            {
+                "error":
+                    "Use the command system."
+            }
+        )
 
+        return
 
-    if(!value){
 
-        renderGroups();
-        renderUsers();
+    message = add_message(
+        user,
+        text,
+        group,
+        "user"
+    )
 
-        return;
-    }
 
+    broadcast_message(
+        message
+    )
 
-    const matchingGroups =
-        groups.filter(
-            group =>
-                group.name
-                    .toLowerCase()
-                    .includes(value)
-        );
 
+@socketio.on("disconnect")
+def socket_disconnect():
 
-    const matchingUsers =
-        users.filter(
-            user =>
-                user.username
-                    .toLowerCase()
-                    .includes(value)
-        );
+    sid = request.sid
 
+    user = SOCKET_USERS.pop(
+        sid,
+        None
+    )
 
-    groupList.innerHTML =
-        matchingGroups.map(
-            group=>`
+    if not user:
+        return
 
-                <div
-                    class="groupItem"
-                    onclick="selectGroup('${escapeHtml(group.id)}')"
-                >
+    current_user = existing_username(
+        user
+    )
 
-                    <div class="avatar">
-                        ${escapeHtml(
-                            group.name
-                                .charAt(0)
-                                .toUpperCase()
-                        )}
-                    </div>
+    if current_user is None:
+        return
 
-                    <div class="userMeta">
+    current_sid = USERS[
+        current_user
+    ].get("socket_id")
 
-                        <div class="userName">
-                            ${escapeHtml(
-                                group.name
-                            )}
-                        </div>
 
-                    </div>
+    # Remove only if this was the
+    # active socket of the user.
+    if current_sid == sid:
 
-                </div>
+        remove_user(
+            current_user
+        )
 
-            `
-        ).join("");
+        send_users()
 
 
-    userList.innerHTML =
-        matchingUsers.map(
-            user=>`
+# =========================================================
+# START
+# =========================================================
 
-                <div class="userItem">
+if __name__ == "__main__":
 
-                    <div class="avatar">
-                        ${escapeHtml(
-                            user.username
-                                .charAt(0)
-                                .toUpperCase()
-                        )}
-                    </div>
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
 
-                    <div class="userMeta">
-
-                        <div class="userName">
-                            ${escapeHtml(
-                                user.username
-                            )}
-                        </div>
-
-                        <div class="userRole">
-                            ${escapeHtml(
-                                user.role
-                            )}
-                        </div>
-
-                    </div>
-
-                </div>
-
-            `
-        ).join("");
-
-}
-
-
-/* ================= MOBILE ================= */
-
-function toggleSidebar(){
-
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
-
-}
-
-
-/* ================= FALLBACK ================= */
-
-setInterval(()=>{
-
-    if(
-        USERNAME &&
-        (!socket || !socket.connected)
-    ){
-
-        loadMessages();
-        loadUsers();
-        loadGroups();
-
-    }
-
-},3000);
-
-
-/* ================= START ================= */
-
-groups = [
-    {
-        id:"main",
-        name:"MATIA CHAT"
-    }
-];
-
-renderGroups();
-
-</script>
-
-</body>
-</html>
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        allow_unsafe_werkzeug=True
+    )
